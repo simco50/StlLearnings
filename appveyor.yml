@@ -1,0 +1,16 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+environment:
+  matrix:
+    - configuration: Debug
+    - configuration: Release
+platform:
+  - x64
+  - Win32
+before_build:
+  - ps: .\scripts\MakeVS2017.bat
+build:
+  project: StdLearnings_vs2017.sln
+  verbosity: minimal
+test_script:
+- cmd: Build\FluxStd_%PLATFORM%_%CONFIGURATION%\StdLearnings.exe -r appveyor
