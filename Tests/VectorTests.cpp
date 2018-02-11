@@ -2,6 +2,8 @@
 #include "../Std/Vector.h"
 using namespace FluxStd;
 
+#pragma region Constructors
+
 TEST_CASE("Vector - Constructor - Empty", "[Vector]")
 {
 	Vector<int> v;
@@ -70,17 +72,10 @@ TEST_CASE("Vector - Constructor - Initializer List", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector Create move semantics copy constructor", "[Vector]")
+TEST_CASE("Vector - Constructor - Move semantics", "[Vector]")
 {
 	Vector<int> v1 = { 0, 1, 2, 3, 4 };
 	Vector<int> v2(std::move(v1));
-	REQUIRE(v2.Data() != nullptr);
-	REQUIRE(v2.Size() == 5);
-	REQUIRE(v2.Capacity() == 5);
-	REQUIRE(!v2.Empty());
-	REQUIRE(v2.begin() != nullptr);
-	REQUIRE(v2.end() != nullptr);
-	REQUIRE(v2.begin() != v2.end());
 
 	REQUIRE(v1.Data() == nullptr);
 	REQUIRE(v1.Size() == 0);
@@ -89,9 +84,17 @@ TEST_CASE("Vector Create move semantics copy constructor", "[Vector]")
 	REQUIRE(v1.begin() == nullptr);
 	REQUIRE(v1.end() == nullptr);
 	REQUIRE(v1.begin() == v1.end());
+
+	REQUIRE(v2.Data() != nullptr);
+	REQUIRE(v2.Size() == 5);
+	REQUIRE(v2.Capacity() == 5);
+	REQUIRE(!v2.Empty());
+	REQUIRE(v2.begin() != nullptr);
+	REQUIRE(v2.end() != nullptr);
+	REQUIRE(v2.begin() != v2.end());
 }
 
-TEST_CASE("Vector Create copy constructor", "[Vector]")
+TEST_CASE("Vector - Constructor - Copy", "[Vector]")
 {
 	Vector<int> v1 = { 0, 1, 2, 3, 4 };
 	Vector<int> v2(v1);
@@ -116,7 +119,11 @@ TEST_CASE("Vector Create copy constructor", "[Vector]")
 	REQUIRE(v1.Data() != v2.Data());
 }
 
-TEST_CASE("Vector Deep copy assigment operator - same size", "[Vector]")
+#pragma endregion Constructors
+
+#pragma region Assignment
+
+TEST_CASE("Vector - Assigment Operator - Copy - Same Size", "[Vector]")
 {
 	Vector<int> v1 = { 0, 1, 2, 3, 4 };
 	Vector<int> v2 = { 5, 6, 7, 8, 9 };
@@ -141,7 +148,7 @@ TEST_CASE("Vector Deep copy assigment operator - same size", "[Vector]")
 	REQUIRE(v1.begin() != v1.end());
 }
 
-TEST_CASE("Vector Deep copy assigment operator - different size", "[Vector]")
+TEST_CASE("Vector - Assigment Operator - Copy - Different Size", "[Vector]")
 {
 	Vector<int> v1 = { 0, 1, 2, 3, 4 };
 	Vector<int> v2 = { 5, 6, 7, 8 };
@@ -164,7 +171,7 @@ TEST_CASE("Vector Deep copy assigment operator - different size", "[Vector]")
 	REQUIRE(v1.begin() != v1.end());
 }
 
-TEST_CASE("Vector Deep copy assigment operator - From empty", "[Vector]")
+TEST_CASE("Vector - Assigment Operator - Copy - From empty", "[Vector]")
 {
 	Vector<int> v1;
 	Vector<int> v2 = { 5, 6, 7, 8 };
@@ -187,7 +194,32 @@ TEST_CASE("Vector Deep copy assigment operator - From empty", "[Vector]")
 	REQUIRE(v1.begin() != v1.end());
 }
 
-TEST_CASE("Vector Comparison same size", "[Vector]")
+TEST_CASE("Vector - Assigment Operator - Copy - To empty", "[Vector]")
+{
+	Vector<int> v1 = { 5, 6, 7, 8 };
+	Vector<int> v2;
+	v1 = v2;
+
+	REQUIRE(v2.Data() == nullptr);
+	REQUIRE(v2.Size() == 0);
+	REQUIRE(v2.Capacity() == 0);
+	REQUIRE(v2.Empty());
+	REQUIRE(v2.begin() == nullptr);
+	REQUIRE(v2.end() == nullptr);
+
+	REQUIRE(v1.Data() == nullptr);
+	REQUIRE(v1.Size() == 0);
+	REQUIRE(v1.Capacity() == 0);
+	REQUIRE(v1.Empty());
+	REQUIRE(v1.begin() == nullptr);
+	REQUIRE(v1.end() == nullptr);
+}
+
+#pragma endregion Assignment
+
+#pragma region Comparison
+
+TEST_CASE("Vector - Comparison - Same size", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	Vector<int> v2 = { 5, 6, 7, 8 };
@@ -195,7 +227,7 @@ TEST_CASE("Vector Comparison same size", "[Vector]")
 	REQUIRE(!(v1 != v2));
 }
 
-TEST_CASE("Vector Comparison different size", "[Vector]")
+TEST_CASE("Vector - Comparison - Different size", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	Vector<int> v2 = { 5, 6, 7 };
@@ -203,7 +235,7 @@ TEST_CASE("Vector Comparison different size", "[Vector]")
 	REQUIRE(v1 != v2);
 }
 
-TEST_CASE("Vector Comparison same size different values", "[Vector]")
+TEST_CASE("Vector - Comparison - Same size, Different values", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	Vector<int> v2 = { 5, 6, 7, 9 };
@@ -211,7 +243,9 @@ TEST_CASE("Vector Comparison same size different values", "[Vector]")
 	REQUIRE(v1 != v2);
 }
 
-TEST_CASE("Vector bool conversion", "[Vector]")
+#pragma endregion Comparison
+
+TEST_CASE("Vector - Conversion - bool", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	Vector<int> v2;
@@ -219,7 +253,17 @@ TEST_CASE("Vector bool conversion", "[Vector]")
 	REQUIRE(!v2);
 }
 
-TEST_CASE("Vector Clear", "[Vector]")
+TEST_CASE("Vector - Clear empty", "[Vector]")
+{
+	Vector<int> v1;
+	REQUIRE(v1.Size() == 0);
+	REQUIRE(v1.Capacity() == 0);
+	v1.Clear();
+	REQUIRE(v1.Size() == 0);
+	REQUIRE(v1.Capacity() == 0);
+}
+
+TEST_CASE("Vector - Clear populated", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	REQUIRE(v1.Size() == 4);
@@ -231,7 +275,9 @@ TEST_CASE("Vector Clear", "[Vector]")
 	REQUIRE(v1.begin() == v1.end());
 }
 
-TEST_CASE("Vector Resize no capacity", "[Vector]")
+#pragma region Sizing
+
+TEST_CASE("Vector - Resize - Increase size and capacity", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	int* pData = v1.Data();
@@ -246,12 +292,19 @@ TEST_CASE("Vector Resize no capacity", "[Vector]")
 	{
 		REQUIRE(v1[i] == 0);
 	}
-	v1.Resize(5);
-	REQUIRE(v1.Size() == 5);
-	REQUIRE(v1.Capacity() == 5);
 }
 
-TEST_CASE("Vector Reserve", "[Vector]")
+TEST_CASE("Vector - Resize - Decrease size", "[Vector]")
+{
+	Vector<int> v1 = { 5, 6, 7, 8 };
+	REQUIRE(v1.Size() == 4);
+	REQUIRE(v1.Capacity() == 4);
+	v1.Resize(2);
+	REQUIRE(v1.Size() == 2);
+	REQUIRE(v1.Capacity() == 2);
+}
+
+TEST_CASE("Vector - Reserve - Increase capacity", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	int* pData = v1.Data();
@@ -268,26 +321,105 @@ TEST_CASE("Vector Reserve", "[Vector]")
 	REQUIRE(v1.Capacity() == 10);
 }
 
-TEST_CASE("Vector Push", "[Vector]")
+TEST_CASE("Vector - Reserve - Lower capacity", "[Vector]")
+{
+	Vector<int> v1 = { 5, 6, 7, 8 };
+	int* pData = v1.Data();
+	REQUIRE(v1.Size() == 4);
+	REQUIRE(v1.Capacity() == 4);
+	v1.Reserve(2);
+	REQUIRE(v1.Size() == 4);
+	REQUIRE(v1.Capacity() == 4);
+	REQUIRE(v1.Data() == pData);
+	pData = v1.Data();
+	v1.Reserve(10);
+	REQUIRE(v1.Data() != pData);
+	REQUIRE(v1.Size() == 4);
+	REQUIRE(v1.Capacity() == 10);
+}
+
+TEST_CASE("Vector - ShrinkToFit - After push", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 7);
+	v1.Push(10);
+	REQUIRE(v1.Capacity() == 7 + Vector<int>::CAPACITY_STEP_SIZE);
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 8);
+}
+
+TEST_CASE("Vector - ShrinkToFit - After resize", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 7);
+	v1.Resize(10);
+	REQUIRE(v1.Capacity() == 10);
+	REQUIRE(v1.Size() == 10);
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 10);
+	REQUIRE(v1.Size() == 10);
+}
+
+TEST_CASE("Vector - ShrinkToFit - After reserve", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 7);
+	v1.Reserve(10);
+	v1.ShrinkToFit();
+	REQUIRE(v1.Capacity() == 7);
+	REQUIRE(v1.Size() == 7);
+}
+
+#pragma endregion Sizing
+
+#pragma region Addition/Deletion
+
+TEST_CASE("Vector - Push - Empty vector", "[Vector]")
 {
 	Vector<int> v1;
 	REQUIRE(v1.Size() == 0);
 	v1.Push(1);
 	REQUIRE(v1.Size() == 1);
-	REQUIRE(v1.Capacity() == 4);
+	REQUIRE(v1.Capacity() == Vector<int>::CAPACITY_STEP_SIZE);
 	REQUIRE(v1[0] == 1);
-	v1.Push(2);
-	v1.Push(3);
-	v1.Push(4);
-	REQUIRE(v1.Size() == 4);
-	REQUIRE(v1.Capacity() == 4);
+	for (size_t i = 0; i < Vector<int>::CAPACITY_STEP_SIZE - 1; ++i)
+	{
+		v1.Push((int)i);
+	}
+	REQUIRE(v1.Size() == Vector<int>::CAPACITY_STEP_SIZE);
+	REQUIRE(v1.Capacity() == Vector<int>::CAPACITY_STEP_SIZE);
 	v1.Push(5);
-	REQUIRE(v1.Size() == 5);
-	REQUIRE(v1.Capacity() == 8);
+	REQUIRE(v1.Size() == Vector<int>::CAPACITY_STEP_SIZE + 1);
+	REQUIRE(v1.Capacity() == 2 * Vector<int>::CAPACITY_STEP_SIZE);
 	REQUIRE(v1.Back() == 5);
 }
 
-TEST_CASE("Vector Pop", "[Vector]")
+TEST_CASE("Vector - Push - Non-empty vector", "[Vector]")
+{
+	Vector<int> v1 = {1, 2, 3};
+	REQUIRE(v1.Size() == 3);
+	int* pData = v1.Data();
+	v1.Push(4);
+	REQUIRE(pData != v1.Data());
+	pData = v1.Data();
+	REQUIRE(v1.Size() == 4);
+	REQUIRE(v1.Capacity() == 3 + Vector<int>::CAPACITY_STEP_SIZE);
+	for (size_t i = 0; i < Vector<int>::CAPACITY_STEP_SIZE - 1; ++i)
+	{
+		v1.Push((int)i + 4);
+	}
+	REQUIRE(pData == v1.Data());
+	pData = v1.Data();
+	REQUIRE(v1.Capacity() == 3 + Vector<int>::CAPACITY_STEP_SIZE);
+	v1.Push(10);
+	REQUIRE(v1.Capacity() == 3 + 2 * Vector<int>::CAPACITY_STEP_SIZE);
+	REQUIRE(pData != v1.Data());
+}
+
+TEST_CASE("Vector - Pop", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
 	for (size_t i = v1.Size() - 1; i > 0; --i)
@@ -297,7 +429,7 @@ TEST_CASE("Vector Pop", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector Swap", "[Vector]")
+TEST_CASE("Vector - Swap - Both filled", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
 	Vector<int> v2 = { 6, 7, 8 };
@@ -316,10 +448,32 @@ TEST_CASE("Vector Swap", "[Vector]")
 	REQUIRE(v2.Data() == pV1Data);
 }
 
-TEST_CASE("Vector Assign", "[Vector]")
+TEST_CASE("Vector - Swap - One filled", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	Vector<int> v2;
+	int* pV1Data = v1.Data();
+	int* pV2Data = v2.Data();
+	REQUIRE(v1.Size() == 5);
+	REQUIRE(v1.Capacity() == 5);
+	REQUIRE(v2.Size() == 0);
+	REQUIRE(v2.Capacity() == 0);
+	v1.Swap(v2);
+	REQUIRE(v1.Size() == 0);
+	REQUIRE(v1.Capacity() == 0);
+	REQUIRE(v2.Size() == 5);
+	REQUIRE(v2.Capacity() == 5);
+	REQUIRE(v1.Data() == pV2Data);
+	REQUIRE(v2.Data() == pV1Data);
+}
+
+TEST_CASE("Vector - Assign multiple - No capacity", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	REQUIRE(v1.Size() == 5);
+	int* pData = v1.Data();
 	v1.Assign(4, 10);
+	REQUIRE(pData != v1.Data());
 	REQUIRE(v1.Size() == 9);
 	REQUIRE(v1.Capacity() == 9);
 	for (size_t i = 5; i < v1.Size(); ++i)
@@ -328,7 +482,25 @@ TEST_CASE("Vector Assign", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector SwapEraseAt", "[Vector]")
+TEST_CASE("Vector - Assign multiple - Has capacity", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	REQUIRE(v1.Size() == 5);
+	v1.Reserve(100);
+	REQUIRE(v1.Capacity() == 100);
+	REQUIRE(v1.Size() == 5);
+	int* pData = v1.Data();
+	v1.Assign(4, 10);
+	REQUIRE(pData == v1.Data());
+	REQUIRE(v1.Size() == 9);
+	REQUIRE(v1.Capacity() == 100);
+	for (size_t i = 5; i < v1.Size(); ++i)
+	{
+		REQUIRE(v1[i] == 10);
+	}
+}
+
+TEST_CASE("Vector - SwapEraseAt", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
 	v1.SwapEraseAt(2);
@@ -339,7 +511,7 @@ TEST_CASE("Vector SwapEraseAt", "[Vector]")
 	REQUIRE(v1[3] == 4);
 }
 
-TEST_CASE("Vector EraseAt", "[Vector]")
+TEST_CASE("Vector - EraseAt", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
 	v1.EraseAt(2);
@@ -351,10 +523,12 @@ TEST_CASE("Vector EraseAt", "[Vector]")
 	REQUIRE(v1.Size() == 4);
 }
 
-TEST_CASE("Vector Insert", "[Vector]")
+TEST_CASE("Vector - Insert - No capacity - In the middle", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	int* pData = v1.Data();
 	v1.Insert(2, 10);
+	REQUIRE(pData != v1.Data());
 	REQUIRE(v1[0] == 1);
 	REQUIRE(v1[1] == 2);
 	REQUIRE(v1[2] == 10);
@@ -364,7 +538,25 @@ TEST_CASE("Vector Insert", "[Vector]")
 	REQUIRE(v1.Size() == 6);
 }
 
-TEST_CASE("Vector Insert at the end", "[Vector]")
+TEST_CASE("Vector - Insert - Has capacity - In the middle", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	v1.Reserve(100);
+	REQUIRE(v1.Capacity() == 100);
+	int* pData = v1.Data();
+	v1.Insert(2, 10);
+	REQUIRE(pData == v1.Data());
+	REQUIRE(v1[0] == 1);
+	REQUIRE(v1[1] == 2);
+	REQUIRE(v1[2] == 10);
+	REQUIRE(v1[3] == 3);
+	REQUIRE(v1[4] == 4);
+	REQUIRE(v1[5] == 5);
+	REQUIRE(v1.Size() == 6);
+	REQUIRE(v1.Capacity() == 100);
+}
+
+TEST_CASE("Vector - Insert - No capacity - At the end", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5 };
 	v1.Insert(5, 10);
@@ -377,27 +569,52 @@ TEST_CASE("Vector Insert at the end", "[Vector]")
 	REQUIRE(v1.Size() == 6);
 }
 
-TEST_CASE("Vector Find", "[Vector]")
+TEST_CASE("Vector - Insert - Has capacity - At the end", "[Vector]")
+{
+	Vector<int> v1 = { 1, 2, 3, 4, 5 };
+	v1.Reserve(100);
+	REQUIRE(v1.Capacity() == 100);
+	int* pData = v1.Data();
+	v1.Insert(5, 10);
+	REQUIRE(pData == v1.Data());
+	REQUIRE(v1[0] == 1);
+	REQUIRE(v1[1] == 2);
+	REQUIRE(v1[2] == 3);
+	REQUIRE(v1[3] == 4);
+	REQUIRE(v1[4] == 5);
+	REQUIRE(v1[5] == 10);
+	REQUIRE(v1.Size() == 6);
+	REQUIRE(v1.Capacity() == 100);
+}
+
+#pragma endregion Addition/Deletion
+
+#pragma region Search
+
+TEST_CASE("Vector - Find - Non-empty", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5, 4 };
 	REQUIRE(v1.Find(4) == 3);
-	REQUIRE(v1.Find(12) == -1);
+	REQUIRE(v1.Find(12) == Vector<int>::Npos);
 }
 
-TEST_CASE("Vector RFind", "[Vector]")
+TEST_CASE("Vector - Find - Empty", "[Vector]")
+{
+	Vector<int> v1;
+	REQUIRE(v1.Find(12) == Vector<int>::Npos);
+}
+
+TEST_CASE("Vector - RFind - Non-empty", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
 	REQUIRE(v1.RFind(4) == 5);
-	REQUIRE(v1.RFind(12) == -1);
+	REQUIRE(v1.RFind(12) == Vector<int>::Npos);
 }
 
-TEST_CASE("Vector ShrinkToFit", "[Vector]")
+TEST_CASE("Vector - RFind - Empty", "[Vector]")
 {
-	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
-	v1.ShrinkToFit();
-	REQUIRE(v1.Capacity() == 7);
-	v1.Push(10);
-	REQUIRE(v1.Capacity() == 11);
-	v1.ShrinkToFit();
-	REQUIRE(v1.Capacity() == 8);
+	Vector<int> v1;
+	REQUIRE(v1.RFind(12) == Vector<int>::Npos);
 }
+
+#pragma endregion Search

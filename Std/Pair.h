@@ -5,7 +5,7 @@ namespace FluxStd
 	template<typename T, typename U>
 	struct Pair
 	{
-		Pair()
+		Pair() : First(T()), Second(U())
 		{}
 
 		Pair(const T& first, const U& second) :
@@ -33,6 +33,11 @@ namespace FluxStd
 			if (First != other.First)
 				return false;
 			return Second == other.Second;
+		}
+
+		bool operator!=(const Pair& other) const
+		{
+			return First != other.First || Second != other.Second;
 		}
 
 		T First;

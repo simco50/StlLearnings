@@ -177,17 +177,16 @@ namespace FluxStd
 			m_pCurrent = m_pBuffer + m_Size;
 		}
 
-		const T* Data() const { return m_pBuffer; }
-		T* Data() { return m_pBuffer; }
-		size_t Size() const { return m_Size; }
-		size_t Capacity() const { return m_Capacity; }
-		bool Empty() const { return m_Size == 0; }
+		void ShrinkToFit()
+		{
+			Resize(m_Size);
+		}
 
 		void Push(const T& value)
 		{
 			if (m_Size >= m_Capacity)
 			{
-				Reserve(m_Size + 4);
+				Reserve(m_Size + CAPACITY_STEP_SIZE);
 			}
 			*m_pCurrent = value;
 			++m_Size;
@@ -198,7 +197,7 @@ namespace FluxStd
 		{
 			if (m_Size >= m_Capacity)
 			{
-				Reserve(m_Size + 4);
+				Reserve(m_Size + CAPACITY_STEP_SIZE);
 			}
 			*m_pCurrent = std::move(value);
 			++m_Size;
@@ -285,6 +284,8 @@ namespace FluxStd
 
 		size_t RFind(const T& value) const
 		{
+			if (m_Size == 0)
+				return Vector::Npos;
 			for (const T* pIt = m_pCurrent - 1; pIt >= m_pBuffer; --pIt)
 			{
 				if (*pIt == value)
@@ -293,10 +294,11 @@ namespace FluxStd
 			return Vector::Npos;
 		}
 
-		void ShrinkToFit()
-		{
-			Resize(m_Size);
-		}
+		const T* Data() const { return m_pBuffer; }
+		T* Data() { return m_pBuffer; }
+		size_t Size() const { return m_Size; }
+		size_t Capacity() const { return m_Capacity; }
+		bool Empty() const { return m_Size == 0; }
 
 		T* begin() const { return m_pBuffer; }
 		T* end() const { return m_pCurrent; }
@@ -308,6 +310,7 @@ namespace FluxStd
 
 		constexpr static size_t MaxSize() { return Npos; }
 		static const size_t Npos = ~(size_t)0;
+		static const int CAPACITY_STEP_SIZE = 4;
 
 	private:
 		T * m_pBuffer;
