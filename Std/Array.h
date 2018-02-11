@@ -12,6 +12,12 @@ namespace FluxStd
 			memset(&m_Data[0], 0, sizeof(T) * size);
 		}
 
+		Array(const T& value)
+		{
+			for (size_t i = 0; i < size; ++i)
+				m_Data[i] = value;
+		}
+
 		~Array()
 		{}
 

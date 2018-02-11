@@ -257,7 +257,7 @@ TEST_CASE("Vector - Clear empty", "[Vector]")
 	REQUIRE(v1.Capacity() == 0);
 }
 
-TEST_CASE("Vector - Clear populated", "[Vector]")
+TEST_CASE("Vector - Clear non-empty", "[Vector]")
 {
 	Vector<int> v1 = { 5, 6, 7, 8 };
 	REQUIRE(v1.Size() == 4);

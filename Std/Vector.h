@@ -21,7 +21,7 @@ namespace FluxStd
 			m_pBuffer(new T[size]), m_pCurrent(m_pBuffer), m_Size(size), m_Capacity(size)
 		{
 			for (size_t i = 0; i < size; ++i, ++m_pCurrent)
-				memcpy(m_pCurrent, &value, sizeof(T));
+				*m_pCurrent = value;
 		}
 
 		Vector(T* pData, const size_t size) :
