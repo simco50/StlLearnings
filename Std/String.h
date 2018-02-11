@@ -271,9 +271,9 @@ namespace FluxStd
 			m_pCurrent += len;
 		}
 
-		String Substring(const unsigned int from, const int length = String::Npos)
+		String Substring(const unsigned int from, const size_t length = String::Npos)
 		{
-			if (length == -1)
+			if (length == String::Npos)
 			{
 				assert(from < m_Size);
 				return String(m_pBuffer + from, m_pCurrent);
@@ -361,32 +361,32 @@ namespace FluxStd
 		const char& At(const size_t index) const { assert(index < m_Size); m_pBuffer[index]; }
 		char& At(const size_t index) { assert(index < m_Size); m_pBuffer[index]; }
 
-		int Find(const char c)
+		size_t Find(const char c) const
 		{
 			for (size_t i = 0; i < m_Size; ++i)
 			{
 				if (m_pBuffer[i] == c)
-					return (int)i;
+					return i;
 			}
 			return String::Npos;
 		}
 
-		int RFind(const char c)
+		size_t RFind(const char c) const
 		{
 			for (size_t i = m_Size - 1; i >= 0; --i)
 			{
 				if (m_pBuffer[i] == c)
-					return (int)i;
+					return i;
 			}
 			return String::Npos;
 		}
 
-		int Find(const String& str)
+		size_t Find(const String& str) const
 		{
 			return Find(str.Data());
 		}
 
-		int Find(const char* c)
+		size_t Find(const char* c) const
 		{
 			size_t len = StrLen(c);
 			if (len == 0)
@@ -412,7 +412,7 @@ namespace FluxStd
 			return String::Npos;
 		}
 
-		int RFind(const char* c)
+		size_t RFind(const char* c) const
 		{
 			size_t len = StrLen(c);
 			if (len == 0)
@@ -432,13 +432,13 @@ namespace FluxStd
 						}
 					}
 					if (match)
-						return (int)(i - len + 1);
+						return i - len + 1;
 				}
 			}
 			return String::Npos;
 		}
 
-		int RFind(const String& str)
+		size_t RFind(const String& str) const
 		{
 			return RFind(str.Data());
 		}
@@ -472,15 +472,14 @@ namespace FluxStd
 		const char* begin() const { return m_pBuffer; }
 		const char* end() const { return m_pCurrent; }
 
-		constexpr size_t MaxSize() const { size_t nr = 0; nr = ~nr; return nr; }
-
 		friend std::ostream& operator<<(std::ostream& os, const String& string)
 		{
 			os << string.Data();
 			return os;
 		}
 
-		static const int Npos = -1;
+		constexpr static size_t MaxSize() { return Npos; }
+		static const size_t Npos = ~(size_t)0;
 	private:
 		char* m_pBuffer;
 		char* m_pCurrent;

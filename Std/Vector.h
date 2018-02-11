@@ -273,24 +273,24 @@ namespace FluxStd
 			++m_pCurrent;
 		}
 
-		int Find(const T& value) const
+		size_t Find(const T& value) const
 		{
 			for (const T* pIt = m_pBuffer; pIt < m_pCurrent; ++pIt)
 			{
 				if (*pIt == value)
-					return (int)(pIt - m_pBuffer);
+					return pIt - m_pBuffer;
 			}
-			return -1;
+			return Vector::Npos;
 		}
 
-		int RFind(const T& value) const
+		size_t RFind(const T& value) const
 		{
 			for (const T* pIt = m_pCurrent - 1; pIt >= m_pBuffer; --pIt)
 			{
 				if (*pIt == value)
-					return (int)(pIt - m_pBuffer);
+					return pIt - m_pBuffer;
 			}
-			return -1;
+			return Vector::Npos;
 		}
 
 		void ShrinkToFit()
@@ -306,7 +306,8 @@ namespace FluxStd
 		T& Back() { assert(m_pCurrent); return *(m_pCurrent - 1); }
 		const T& Back() const { assert(m_pCurrent); return *(m_pCurrent - 1); }
 
-		constexpr size_t MaxSize() const { size_t nr = 0; nr = ~nr; return nr; }
+		constexpr static size_t MaxSize() { return Npos; }
+		static const size_t Npos = ~(size_t)0;
 
 	private:
 		T * m_pBuffer;
