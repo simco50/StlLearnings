@@ -245,13 +245,7 @@ TEST_CASE("Vector - Comparison - Same size, Different values", "[Vector]")
 
 #pragma endregion Comparison
 
-TEST_CASE("Vector - Conversion - bool", "[Vector]")
-{
-	Vector<int> v1 = { 5, 6, 7, 8 };
-	Vector<int> v2;
-	REQUIRE(v1);
-	REQUIRE(!v2);
-}
+#pragma region Sizing
 
 TEST_CASE("Vector - Clear empty", "[Vector]")
 {
@@ -274,8 +268,6 @@ TEST_CASE("Vector - Clear populated", "[Vector]")
 	REQUIRE(v1.Capacity() == 4);
 	REQUIRE(v1.begin() == v1.end());
 }
-
-#pragma region Sizing
 
 TEST_CASE("Vector - Resize - Increase size and capacity", "[Vector]")
 {
@@ -618,3 +610,15 @@ TEST_CASE("Vector - RFind - Empty", "[Vector]")
 }
 
 #pragma endregion Search
+
+#pragma region Misc
+
+TEST_CASE("Vector - Conversion - bool", "[Vector]")
+{
+	Vector<int> v1 = { 5, 6, 7, 8 };
+	Vector<int> v2;
+	REQUIRE(v1);
+	REQUIRE(!v2);
+}
+
+#pragma endregion Misc
