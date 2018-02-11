@@ -13,4 +13,4 @@ build:
   project: StdLearnings_vs2017.sln
   verbosity: minimal
 test_script:
-- cmd: Build\FluxStd_%PLATFORM%_%CONFIGURATION%\StdLearnings.exe -r appveyor
+- cmd: Build\StdLearnings_%PLATFORM%_%CONFIGURATION%\StdLearnings.exe -r appveyor
