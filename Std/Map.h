@@ -47,6 +47,14 @@ namespace FluxStd
 
 			KeyValuePair<K, V> Pair;
 
+			Node(const K& key) :
+				Pair(key)
+			{}
+
+			Node(const K& key, const V& value) :
+				Pair(key, value)
+			{}
+
 			Node(const Node& other) :
 				Pair(other.Pair)
 			{}
@@ -132,7 +140,67 @@ namespace FluxStd
 			m_Size = 0;
 		}
 
+		const V& Get(const K& key) const { return GetValue(key, m_pRoot); }
+		V& Get(const K& key) { return GetValue(key, m_pRoot); }
+
+		V& operator[](const K& key) { return GetOrCreate(key, m_pRoot); }
+
 	private:
+
+		V & GetValue(const K& key, Node* pNode) const
+		{
+			Node* pFoundNode = GetNode(key, pNode);
+			assert(pFoundNode);
+			pFoundNode->Value;
+		}
+
+		V& GetOrCreate(const K& key, Node* pNode)
+		{
+			Node* pFoundNode = GetNode(key, pNode);
+			if (pFoundNode)
+				return pFoundNode->Pair.Value;
+			return InsertPair(key)->Pair.Value;
+		}
+
+		Node* GetNode(const K& key, Node* pNode)
+		{
+			if (pNode == nullptr)
+				return nullptr;
+
+			if (key < pNode->Pair.Key)
+				return GetNode(key, pNode->pLeft);
+			else if (key > pNode->Pair.Key)
+				return GetNode(key, pNode->pRight);
+			return pNode;
+		}
+
+		Node* InsertPair(const K& key, const V& value)
+		{
+			Node* pNewNode = new Node(key, value);
+			InsertNode(pNewNode);
+			return pNewNode;
+		}
+
+		Node* InsertPair(const K& key)
+		{
+			Node* pNewNode = new Node(key);
+			InsertNode(pNewNode, m_pRoot);
+			return pNewNode;
+		}
+
+		void InsertNode(Node* pNode, Node*& pCurrent)
+		{
+			if (pCurrent == nullptr)
+			{
+				pCurrent = pNode;
+				return;
+			}
+			if (pNode->Pair.Key < pCurrent->Pair.Key)
+				InsertNode(pNode, pCurrent->pLeft);
+			else
+				InsertNode(pNode, pCurrent->pRight);
+		}
+
 		void DeepCopy(const Node* pSource, Node*& pDestination)
 		{
 			if (pSource == nullptr)
@@ -182,6 +250,15 @@ namespace FluxStd
 			pX->Red = pX->pRight->Red;
 			pX->pRight->Red = true;
 			return pX;
+		}
+
+		void FlipColor(Node* pNode)
+		{
+			if (pNode == nullptr)
+				return;
+			pNode->Red = !pNode->Red;
+			pNode->pLeft->Red = !pNode->pLeft->Red;
+			pNode->pRight->Red = !pNode->pRight->Red;
 		}
 
 	private:
