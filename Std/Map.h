@@ -61,39 +61,33 @@ namespace FluxStd
 
 			static bool IsRed(Node* pNode) { return pNode != nullptr && pNode->Red; }
 
-			static Node* Parent(Node* pNode)
+			static Node* RotateLeft(Node *pNode)
 			{
-				if (pNode)
-					return pNode->pParent;
-				return nullptr;
+				Node *pX = pNode->pRight;
+				p->pRight = pX->pLeft;
+				pX->pLeft = pNode;
+				pX->Red = pX->pLeft->Red;
+				pX->pLeft->Red = true;
+				return pX;
 			}
 
-			static Node* Sibling(Node* pNode)
+			static Node* RotateRight(Node *pNode)
+			{
+				Node *pX = pNode->pLeft;
+				p->pLeft = pX->pRight;
+				pX->pRight = pNode;
+				pX->Red = pX->pRight->Red;
+				pX->pRight->Red = true;
+				return pX;
+			}
+
+			static void FlipColor(Node* pNode)
 			{
 				if (pNode == nullptr)
-					return nullptr;
-				Node* pParent = pNode->pParent;
-				if (pParent == nullptr)
-					return nullptr;
-				if (pParent->pLeft == pNode)
-					return pParent->pRight;
-				return pParent->pLeft;
-			}
-
-			static Node* Uncle(Node* pNode)
-			{
-				Node* pParent = Parent(pNode);
-				return Sibling(pParent);
-			}
-
-			static Node* GrandParent(Node* pNode)
-			{
-				if (pNode == nullptr)
-					return nullptr;
-				Node* pParent = pNode->pParent;
-				if (pParent == nullptr)
-					return nullptr;
-				return pParent->pParent;
+					return;
+				pNode->Red = !pNode->Red;
+				pNode->pLeft->Red = !pNode->pLeft->Red;
+				pNode->pRight->Red = !pNode->pRight->Red;
 			}
 		};
 
@@ -133,73 +127,36 @@ namespace FluxStd
 			Iterate<FunctorType>(m_pRoot, functor);
 		}
 
-		size_t Size() const { return m_Size; }
 		void Clear() const 
 		{ 
-			return DestroyTree(m_pRoot);
+			DestroyTree(m_pRoot);
 			m_Size = 0;
 		}
 
-		const V& Get(const K& key) const { return GetValue(key, m_pRoot); }
-		V& Get(const K& key) { return GetValue(key, m_pRoot); }
+		void Insert(const K& key, const V& value)
+		{
+			Insert(key, value, m_pRoot);
+		}
 
-		V& operator[](const K& key) { return GetOrCreate(key, m_pRoot); }
+		size_t Size() const { return m_Size; }
+		bool Contains(const K& key) const { return Get(key, m_pRoot) != nullptr; }
+		bool IsEmpty() const { return m_Size == 0; }
+		static constexpr size_t MaxSize() { return ~(size_t)0; }
+
+		const V& At(const K& key) const { return Get(key, m_pRoot)->Pair.Value; }
+		V& At(const K& key) { return Get(key, m_pRoot)->Pair.Value; }
+
+		V& operator[](const K& key) { return Insert(key, m_pRoot)->Pair.Value; }
+
+		KeyValuePair<K, V>* Find(const K& key) 
+		{ 
+			Node* pNode = Get(key, m_pRoot); 
+			if (pNode) 
+				return &pNode->Pair; 
+			return nullptr; 
+		}
 
 	private:
-
-		V & GetValue(const K& key, Node* pNode) const
-		{
-			Node* pFoundNode = GetNode(key, pNode);
-			assert(pFoundNode);
-			pFoundNode->Value;
-		}
-
-		V& GetOrCreate(const K& key, Node* pNode)
-		{
-			Node* pFoundNode = GetNode(key, pNode);
-			if (pFoundNode)
-				return pFoundNode->Pair.Value;
-			return InsertPair(key)->Pair.Value;
-		}
-
-		Node* GetNode(const K& key, Node* pNode)
-		{
-			if (pNode == nullptr)
-				return nullptr;
-
-			if (key < pNode->Pair.Key)
-				return GetNode(key, pNode->pLeft);
-			else if (key > pNode->Pair.Key)
-				return GetNode(key, pNode->pRight);
-			return pNode;
-		}
-
-		Node* InsertPair(const K& key, const V& value)
-		{
-			Node* pNewNode = new Node(key, value);
-			InsertNode(pNewNode);
-			return pNewNode;
-		}
-
-		Node* InsertPair(const K& key)
-		{
-			Node* pNewNode = new Node(key);
-			InsertNode(pNewNode, m_pRoot);
-			return pNewNode;
-		}
-
-		void InsertNode(Node* pNode, Node*& pCurrent)
-		{
-			if (pCurrent == nullptr)
-			{
-				pCurrent = pNode;
-				return;
-			}
-			if (pNode->Pair.Key < pCurrent->Pair.Key)
-				InsertNode(pNode, pCurrent->pLeft);
-			else
-				InsertNode(pNode, pCurrent->pRight);
-		}
 
 		void DeepCopy(const Node* pSource, Node*& pDestination)
 		{
@@ -221,6 +178,53 @@ namespace FluxStd
 			}
 		}
 
+		//Searches the node for a key
+		Node* Get(const K& key, Node* pNode) const
+		{
+			while (pNode != nullptr)
+			{
+				if (key < pNode->Pair.Key)
+					pNode = pNode->pLeft;
+				else if (key > pNode->Pair.Key)
+					pNode = pNode->pRight;
+				else
+					return pNode;
+			}
+			return nullptr;
+		}
+
+		//Inserts node or returns an already existing one
+		Node* Insert(const K& key, const V& value, Node*& pCurrent)
+		{
+			if (pCurrent == nullptr)
+			{
+				pCurrent = new Node(key, value);
+				++m_Size;
+				return pCurrent;
+			}
+			if (key < pCurrent->Pair.Key)
+				return Insert(key, pCurrent->pLeft);
+			else if(key > pCurrent->Pair.Key)
+				return Insert(key, pCurrent->pRight);
+			return pCurrent;
+		}
+
+		//Inserts node or returns an already existing one
+		Node* Insert(const K& key, Node*& pCurrent)
+		{
+			if (pCurrent == nullptr)
+			{
+				pCurrent = new Node(key);
+				++m_Size;
+				return pCurrent;
+			}
+			if (key < pCurrent->Pair.Key)
+				return Insert(key, pCurrent->pLeft);
+			else if (key > pCurrent->Pair.Key)
+				return Insert(key, pCurrent->pRight);
+			return pCurrent;
+		}
+
 		template<typename FunctorType>
 		void Iterate(Node* pNode, FunctorType functor)
 		{
@@ -232,36 +236,7 @@ namespace FluxStd
 		}
 
 	private:
-		Node* RotateLeft(Node *pNode)
-		{
-			Node *pX = pNode->pRight;
-			p->pRight = pX->pLeft;
-			pX->pLeft = pNode;
-			pX->Red = pX->pLeft->Red;
-			pX->pLeft->Red = true;
-			return pX;
-		}
 
-		Node* RotateRight(Node *pNode)
-		{
-			Node *pX = pNode->pLeft;
-			p->pLeft = pX->pRight;
-			pX->pRight = pNode;
-			pX->Red = pX->pRight->Red;
-			pX->pRight->Red = true;
-			return pX;
-		}
-
-		void FlipColor(Node* pNode)
-		{
-			if (pNode == nullptr)
-				return;
-			pNode->Red = !pNode->Red;
-			pNode->pLeft->Red = !pNode->pLeft->Red;
-			pNode->pRight->Red = !pNode->pRight->Red;
-		}
-
-	private:
 		Node* m_pRoot;
 		size_t m_Size;
 	};
