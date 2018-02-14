@@ -107,11 +107,10 @@ namespace FluxStd
 			const KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
 		};
 
-		HashMap(const size_t capacity) :
-			m_pTable(new Node*[capacity]), m_Size(0), m_Capacity(capacity)
+		HashMap() :
+			m_pTable(nullptr), m_Size(0)
 		{
-			for (size_t i = 0; i < capacity; ++i)
-				m_pTable[i] = nullptr;
+			AllocateBuckets(START_BUCKETS);
 			m_pHead = new Node();
 			m_pTail = m_pHead;
 		}
@@ -128,61 +127,11 @@ namespace FluxStd
 			}
 		}
 
-		size_t LargestBucket()
-		{
-			size_t largest = 0;
-			for (size_t i = 0; i < m_Capacity; ++i)
-			{
-				size_t size = 0;
-				Node* pNode = m_pTable[i];
-				while (pNode)
-				{
-					++size;
-					pNode = pNode->pDown;
-				}
-				if (size > largest)
-					largest = size;
-			}
-			return largest;
-		}
-
-		V* Find(const K& key)
-		{
-			Node* pNode = Get_Internal(key);
-			if(pNode)
-				return pNode->Pair.Value;
-			return nullptr;
-		}
-
-		V& Get(const K& key) const
-		{
-			Node* pNode = Get_Internal(key);
-			assert(pNode);
-			return pNode->Pair.Value;
-		}
-
-		const V& operator[](const K& key) const { return Get_Internal(key)->Pair.Value; }
-		V& operator[](const K& key) { return GetOrCreate_Internal(key); }
-
-		size_t Size() const { return m_Size; }
-		size_t BucketCount() const { return m_Capacity; }
-
-		void Clear()
-		{
-			Node* pNode = m_pHead;
-			while (pNode != m_pTail)
-			{
-				Node* pNext = pNode->pNext;
-				delete pNode;
-				pNode = pNext;
-			}
-			m_pHead = m_pTail;
-			m_Size = 0;
-		}
-
-		void Insert(const K& key, const V& value)
+		Iterator Insert(const K& key, const V& value)
 		{	
-			GetOrCreate_Internal(key) = value;
+			Iterator pIt = GetOrCreate_Internal(key);
+			pIt->Value = value;
+			return pIt;
 		}
 
 		void Erase(const K& key)
@@ -211,6 +160,7 @@ namespace FluxStd
 						m_pHead = pNode->pNext;
 
 					delete pNode;
+					--m_Size;
 					return;
 				}
 				pUp = pNode;
@@ -218,32 +168,66 @@ namespace FluxStd
 			}
 		}
 
-		Iterator begin() { return Iterator(m_pHead); }
-		ConstIterator begin() const { return ConstIterator(m_pHead); }
-		Iterator end() { return Iterator(m_pTail); }
-		ConstIterator end() const { return ConstIterator(m_pTail); }
-		
-	private:
-		Node* Get_Internal(const K& key) const
+		void Clear()
+		{
+			Node* pNode = m_pHead;
+			while (pNode != m_pTail)
+			{
+				Node* pNext = pNode->pNext;
+				delete pNode;
+				pNode = pNext;
+			}
+			m_pHead = m_pTail;
+			m_Size = 0;
+		}
+
+		Iterator Find(const K& key)
+		{
+			return Get_Internal(key);
+		}
+
+		ConstIterator Find(const K& key) const
+		{
+			return Get_Internal(key);
+		}
+
+		Iterator Get(const K& key) const
 		{
 			size_t hash = Hash(key);
 			Node* pNode = m_pTable[hash];
 			while (pNode)
 			{
 				if (pNode->Pair.Key == key)
-					return pNode;
+					return Iterator(pNode);
 				pNode = pNode->pDown;
 			}
-			return nullptr;
+			return Iterator(m_pTail);
 		}
 
-		V& GetOrCreate_Internal(const K& key)
+		const V& operator[](const K& key) const { return Get(key)->Value; }
+		V& operator[](const K& key) { return GetOrCreate_Internal(key)->Value; }
+
+		size_t Size() const { return m_Size; }
+		size_t BucketCount() const { return m_BucketCount; }
+
+		bool Contains(const K& key) const
+		{
+			return Find(key) != m_pTail;
+		}
+
+		Iterator begin() { return Iterator(m_pHead); }
+		ConstIterator begin() const { return ConstIterator(m_pHead); }
+		Iterator end() { return Iterator(m_pTail); }
+		ConstIterator end() const { return ConstIterator(m_pTail); }
+	
+	private:
+		Iterator GetOrCreate_Internal(const K& key)
 		{
 			//If it exists, change that
-			Node* pExists = Get_Internal(key);
-			if (pExists)
+			Iterator pExists = Get(key);
+			if (pExists != m_pTail)
 			{
-				return pExists->Pair.Value;
+				return pExists;
 			}
 
 			Node* pNewNode = new Node(key);
@@ -264,19 +248,52 @@ namespace FluxStd
 			size_t hash = Hash(key);
 			pNewNode->pDown = m_pTable[hash];
 			m_pTable[hash] = pNewNode;
-			return pNewNode->Pair.Value;
+			++m_Size;
+
+			if (m_Size > m_BucketCount * MAX_BUCKET_LOAD)
+			{
+				AllocateBuckets(m_BucketCount << 1);
+				Rehash();
+			}
+
+			return Iterator(pNewNode);
 		}
 
 		size_t Hash(const K& key) const
 		{
-			return m_Hasher(key) % m_Capacity;
+			return m_Hasher(key) % m_BucketCount;
+		}
+
+		void AllocateBuckets(const size_t count)
+		{
+			if (m_pTable)
+				delete[] m_pTable;
+			m_pTable = new Node*[count];
+			m_BucketCount = count;
+
+			for (size_t i = 0; i < count; ++i)
+				m_pTable[i] = nullptr;
+		}
+
+		void Rehash()
+		{
+			for (Iterator pCurrent = begin(); pCurrent != end(); ++pCurrent)
+			{
+				Node* pNode = pCurrent.pNode;
+				size_t hash = Hash(pCurrent->Key);
+				pNode->pDown = m_pTable[hash];
+				m_pTable[hash] = pNode;
+			}
 		}
 
 		Node** m_pTable;
-		size_t m_Capacity;
+		size_t m_BucketCount;
 		size_t m_Size;
 		HashType m_Hasher;
 		Node* m_pHead;
 		Node* m_pTail;
+
+		static const size_t START_BUCKETS = 8;
+		static const size_t MAX_BUCKET_LOAD = 4;
 	};
 }

@@ -7,16 +7,16 @@ using namespace std;
 
 TEST_CASE("HashMap - Constructor - Empty", "[HashMap]")
 {
-	HashMap<char, int> map(20);
+	HashMap<int, int> map;
 
-	for (char a = 'A'; a < 127; ++a)
+	for (int a = 0; a <= 100; ++a)
 	{
-		map[a] = (int)a;
+		map.Insert(a, 5 * a);
 	}
-	for (const KeyValuePair<char, int>& it : map)
+	cout << endl;
+	for (const KeyValuePair<int, int>& it : map)
 	{
 		std::cout << it.Key << ": " << it.Value << ", ";
 	}
 	cout << endl;
-	cout << map.LargestBucket() << endl;
 }
