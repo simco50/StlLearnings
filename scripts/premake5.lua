@@ -45,7 +45,8 @@ workspace "StdLearnings"
 			"../**.h",
 			"../**.hpp",
 			"../**.cpp",
-			"../**.inl"
+			"../**.inl",
+			"../**.natvis",
 		}
 
 newaction {
