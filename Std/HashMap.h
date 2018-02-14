@@ -27,101 +27,98 @@ namespace FluxStd
 		V Value;
 	};
 
-	template<typename K, typename V>
-	struct HashNode
-	{
-		HashNode() :
-			pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-		{}
-
-		HashNode(const K& key, const V& value) :
-			Pair(key, value), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-		{}
-		HashNode(const K& key) :
-			Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-		{}
-
-		KeyValuePair<K, V> Pair;
-		//The previous node in the linked list
-		HashNode* pPrev;
-		//The next node in the linked list
-		HashNode* pNext;
-		//The next node in the bucket
-		HashNode* pDown;
-	};
-
-	template<typename K, typename V>
-	struct HashIteratorBase
-	{
-		HashIteratorBase(HashNode<K, V>* pNode) :
-			pNode(pNode)
-		{}
-
-		HashIteratorBase(const HashIteratorBase& other) :
-			pNode(other.pNode)
-		{
-		}
-
-		HashIteratorBase& operator=(const HashIteratorBase& other)
-		{
-			pNode = other.pNode;
-			return *this;
-		}
-
-		HashIteratorBase& operator++()
-		{
-			if (pNode)
-				pNode = pNode->pNext;
-			return *this;
-		}
-
-		HashIteratorBase operator++(int)
-		{
-			HashIteratorBase* pIt = this;
-			if (pNode)
-				pNode = pNode->pNext;
-			return pIt;
-		}
-
-		HashIteratorBase& operator--()
-		{
-			if (pNode)
-				pNode = pNode->pPrev;
-			return *this;
-		}
-
-		HashIteratorBase operator--(int)
-		{
-			HashIteratorBase* pIt = this;
-			if (pNode)
-				pNode = pNode->pPrev;
-			return pIt;
-		}
-
-		bool operator==(const HashIteratorBase& other) const { return pNode == other.pNode; }
-		bool operator!=(const HashIteratorBase& other) const { return pNode != other.pNode; }
-
-		HashNode<K, V>* pNode;
-	};
-
 	template<typename K, typename V, typename HashType = std::hash<K>>
 	class HashMap
 	{
-	public:
-		using Node = HashNode<K, V>;
-
-		struct Iterator : public HashIteratorBase<K, V>
+	private:
+		struct Node
 		{
-			Iterator(Node* pNode) : HashIteratorBase<K, V>(pNode)
+			Node() :
+				pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+			{}
+
+			Node(const K& key, const V& value) :
+				Pair(key, value), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+			{}
+			Node(const K& key) :
+				Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+			{}
+
+			KeyValuePair<K, V> Pair;
+			//The previous node in the linked list
+			Node* pPrev;
+			//The next node in the linked list
+			Node* pNext;
+			//The next node in the bucket
+			Node* pDown;
+		};
+
+		struct IteratorBase
+		{
+			IteratorBase(Node* pNode) :
+				pNode(pNode)
+			{}
+
+			IteratorBase(const IteratorBase& other) :
+				pNode(other.pNode)
+			{
+			}
+
+			IteratorBase& operator=(const IteratorBase& other)
+			{
+				pNode = other.pNode;
+				return *this;
+			}
+
+			IteratorBase& operator++()
+			{
+				if (pNode)
+					pNode = pNode->pNext;
+				return *this;
+			}
+
+			IteratorBase operator++(int)
+			{
+				IteratorBase* pIt = this;
+				if (pNode)
+					pNode = pNode->pNext;
+				return pIt;
+			}
+
+			IteratorBase& operator--()
+			{
+				if (pNode)
+					pNode = pNode->pPrev;
+				return *this;
+			}
+
+			IteratorBase operator--(int)
+			{
+				IteratorBase* pIt = this;
+				if (pNode)
+					pNode = pNode->pPrev;
+				return pIt;
+			}
+
+			bool operator==(const IteratorBase& other) const { return pNode == other.pNode; }
+			bool operator!=(const IteratorBase& other) const { return pNode != other.pNode; }
+
+			Node* pNode;
+		};
+
+	public:
+		struct Iterator : public IteratorBase
+		{
+			Iterator(Node* pNode) : IteratorBase(pNode)
 			{}
 
 			KeyValuePair<K, V>* operator->() { return &pNode->Pair; }
 			KeyValuePair<K, V>& operator*() { return pNode->Pair; }
 		};
 
-		struct ConstIterator : public HashIteratorBase<K, V>
+		struct ConstIterator : public IteratorBase
 		{
-			ConstIterator(Node* pNode) : HashIteratorBase<K, V>(pNode)
+			ConstIterator(Node* pNode) : IteratorBase(pNode)
 			{}
 
 			const KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
@@ -131,17 +128,31 @@ namespace FluxStd
 		HashMap() :
 			m_pTable(nullptr), m_Size(0)
 		{
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node));
 			AllocateBuckets(START_BUCKETS);
 			m_pHead = ReserveNode();
 			m_pTail = m_pHead;
 		}
 
-		HashMap(const std::initializer_list<KeyValuePair<K, V>>& list)
+		HashMap(const std::initializer_list<KeyValuePair<K, V>>& list) :
+			m_pTable(nullptr), m_Size(0)
 		{
-			for (KeyValuePair<K, V>* pPair = list.begin(); pPair != list.end(); ++pPair)
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node), list.size() + 1);
+			m_pHead = ReserveNode();
+			m_pTail = m_pHead;
+			for (const KeyValuePair<K, V>* pPair = list.begin(); pPair != list.end(); ++pPair)
 			{
 				Insert(pPair->Key, pPair->Value);
 			}
+		}
+
+		HashMap(const HashMap& other) :
+			m_pTable(nullptr), m_Size(0), m_BucketCount(other.m_BucketCount)
+		{
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 1);
+			m_pHead = ReserveNode();
+			m_pTail = m_pHead;
+			Insert(other);
 		}
 
 		~HashMap()
@@ -153,11 +164,14 @@ namespace FluxStd
 				m_pHead = nullptr;
 				delete[] m_pTable;
 				m_pTable = nullptr;
+
+				BlockAllocator::Uninitialize(m_pBlock);
 			}
 		}
 
 		HashMap& operator=(const HashMap& other)
 		{
+			//If not self
 			if (this != &other)
 			{
 				Clear();
@@ -174,11 +188,13 @@ namespace FluxStd
 
 		HashMap& operator+=(const HashMap& map)
 		{
-			Insert(map);
+			//If not self
+			if (this != &map)
+				Insert(map);
 			return *this;
 		}
 
-		bool operator==(const HashMap& other)
+		bool operator==(const HashMap& other) const
 		{
 			if (m_Size != other.m_Size)
 				return false;
@@ -188,33 +204,34 @@ namespace FluxStd
 			while (pIt != pEnd)
 			{
 				ConstIterator pFound = other.Find(pIt->Key);
-				if (pFound != pEnd)
+				if (pFound == pEnd || pFound->Value != pIt->Value)
 					return false;
+				++pIt;
 			}
 			return true;
 		}
 
-		bool operator!=(const HashMap& other)
+		bool operator!=(const HashMap& other) const
 		{
-			if (m_Size == other.m_Size)
-				return false;
+			if (m_Size != other.m_Size)
+				return true;
 
 			ConstIterator pIt = ConstIterator(m_pHead);
 			ConstIterator pEnd = ConstIterator(m_pTail);
 			while (pIt != pEnd)
 			{
 				ConstIterator pFound = other.Find(pIt->Key);
-				if (pFound == pEnd)
+				if (pFound == pEnd || pFound->Value != pIt->Value)
 					return true;
+				++pIt;
 			}
 			return false;
 		}
 
 		void Insert(const HashMap& map)
 		{
-			ConstIterator pIt = ConstIterator(m_pHead);
-			ConstIterator pEnd = ConstIterator(m_pTail);
-			while (pIt != pEnd)
+			ConstIterator pIt = map.begin();
+			while (pIt != map.end())
 			{
 				Insert(pIt->Key, pIt->Value);
 				++pIt;
@@ -224,14 +241,14 @@ namespace FluxStd
 		Iterator Insert(const KeyValuePair<K, V>& pair)
 		{
 			Iterator pIt = GetOrCreate_Internal(pair.Key);
-			pIt->Value = pair.Value;
+			pIt.pNode->Pair.Value = pair.Value;
 			return pIt;
 		}
 
 		Iterator Insert(const K& key, const V& value)
 		{	
 			Iterator pIt = GetOrCreate_Internal(key);
-			pIt->Value = value;
+			pIt.pNode->Pair.Value = value;
 			return pIt;
 		}
 
@@ -275,39 +292,7 @@ namespace FluxStd
 
 		Iterator Erase(const Iterator& it)
 		{
-			Node* pNode = it.pNode;
-			if (it == Iterator(m_pTail) || pNode == nullptr)
-				return Iterator(m_pTail);
-			Node* pUp;
-			Node* pNext = pNode->pNext;
-			while (pNode != nullptr)
-			{
-				if (key == pNode->Pair.Key)
-				{
-					if (pUp)
-					{
-						//Delete from the bucket
-						pUp->pDown = pNode->pDown;
-					}
-					//Delete from the linked list
-					Node* pPrev = pNode->pPrev;
-					if (pPrev)
-						pPrev->pNext = pNode->pNext;
-					if (pNode->pNext)
-						pNode->pNext->pPrev = pPrev;
-
-					//If it was the head, replace the head
-					if (pNode == m_pHead)
-						m_pHead = pNode->pNext;
-
-					FreeNode(pNode);
-					--m_Size;
-					break;
-				}
-				pUp = pNode;
-				pNode = pNode->pDown;
-			}
-			return Iterator(pNext);
+			return Erase(it->Key);
 		}
 
 		void Clear()
@@ -323,7 +308,7 @@ namespace FluxStd
 			m_Size = 0;
 		}
 
-		Iterator Find(const K& key) const
+		Iterator Find(const K& key)
 		{
 			size_t hash = Hash(key);
 			Node* pNode = m_pTable[hash];
@@ -336,27 +321,51 @@ namespace FluxStd
 			return Iterator(m_pTail);
 		}
 
-		const V& operator[](const K& key) const { return Get(key)->Value; }
-		V& operator[](const K& key) { return GetOrCreate_Internal(key)->Value; }
-
-		size_t Size() const { return m_Size; }
-		size_t BucketCount() const { return m_BucketCount; }
-		constexpr size_t StartBuckets() const { return START_BUCKETS; }
-		constexpr size_t MaxLoadFactor() const { return MAX_LOAD_FACTOR; }
+		ConstIterator Find(const K& key) const
+		{
+			size_t hash = Hash(key);
+			Node* pNode = m_pTable[hash];
+			while (pNode)
+			{
+				if (pNode->Pair.Key == key)
+					return ConstIterator(pNode);
+				pNode = pNode->pDown;
+			}
+			return ConstIterator(m_pTail);
+		}
 
 		bool Contains(const K& key) const
 		{
 			return Find(key) != m_pTail;
 		}
 
+		const V& operator[](const K& key) const { return Get(key)->Value; }
+		V& operator[](const K& key) { return GetOrCreate_Internal(key)->Value; }
+
+		size_t Size() const { return m_Size; }
+		size_t BucketCount() const { return m_BucketCount; }
+		constexpr float MaxLoadFactor() const { return 0.75f; }
+
+		//The amount of buckets to start with
+		static const size_t START_BUCKETS = 8;
+
+		Iterator Begin() { return Iterator(m_pHead); }
+		ConstIterator Begin() const { return ConstIterator(m_pHead); }
+		Iterator End() { return Iterator(m_pTail); }
+		ConstIterator End() const { return ConstIterator(m_pTail); }
+
+		//Support range based for-loop
 		Iterator begin() { return Iterator(m_pHead); }
 		ConstIterator begin() const { return ConstIterator(m_pHead); }
 		Iterator end() { return Iterator(m_pTail); }
 		ConstIterator end() const { return ConstIterator(m_pTail); }
-	
+
 	private:
 		Iterator GetOrCreate_Internal(const K& key)
 		{
+			if (m_pTable == nullptr)
+				AllocateBuckets(START_BUCKETS);
+
 			//If it exists, change that
 			Iterator pExists = Find(key);
 			if (pExists != m_pTail)
@@ -384,7 +393,7 @@ namespace FluxStd
 			m_pTable[hash] = pNewNode;
 			++m_Size;
 
-			if (m_Size > m_BucketCount * MAX_LOAD_FACTOR)
+			if (m_Size >= m_BucketCount * MaxLoadFactor())
 			{
 				AllocateBuckets(m_BucketCount << 1);
 				Rehash();
@@ -422,51 +431,42 @@ namespace FluxStd
 			}
 		}
 
+		///////////Allocations///////////
+
 		Node* ReserveNode()
 		{
-			Node* pNode = m_Allocator.Reserve();
+			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
 			new(pNode) Node();
 			return pNode;
 		}
 
 		Node* ReserveNode(const K& key)
 		{
-			Node* pNode = m_Allocator.Reserve();
+			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
 			new(pNode) Node(key);
-			return pNode;
-		}
-
-		Node* ReserveNode(const K& key, const V& value)
-		{
-			Node* pNode = m_Allocator.Reserve();
-			new(pNode) Node(key, value);
 			return pNode;
 		}
 
 		void FreeNode(Node* pNode)
 		{
 			(pNode)->~Node();
-			m_Allocator.Free(pNode);
+			BlockAllocator::Free(m_pBlock, pNode);
 		}
 
-		//Array of pointers representing the table used for random access
-		Node** m_pTable;
+	private:
 		//The amount of buckets
 		size_t m_BucketCount;
 		//The amount of elements in the map
 		size_t m_Size;
-		//The hash functor
-		HashType m_Hasher;
 		//The head of the linked list
 		Node* m_pHead;
 		//The tail of the linked list
 		Node* m_pTail;
-
-		BlockAllocator<Node> m_Allocator;
-
-		//The amount of buckets to start with
-		static const size_t START_BUCKETS = 8;
-		//The maximum capacity of 1 bucket, if it exceeds, allocate more buckets and rehash
-		static const size_t MAX_LOAD_FACTOR = 4;
+		//Array of pointers representing the table used for random access
+		Node** m_pTable;
+		//The allocator block
+		BlockAllocator::Block* m_pBlock;
+		//The hash functor
+		HashType m_Hasher;
 	};
 }

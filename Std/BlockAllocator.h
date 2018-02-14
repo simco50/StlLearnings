@@ -1,42 +1,16 @@
 #pragma once
 
 namespace FluxStd
-{
-	template<typename T>
+{ 
 	class BlockAllocator
 	{
-	public:
-		BlockAllocator()
-		{
-			m_pBlock = AllocatorInitialize(sizeof(T), 0);
-		}
-
-		~BlockAllocator()
-		{
-			AllocatorUninitialize(m_pBlock);
-		}
-
-		T* Reserve()
-		{
-			if (m_pBlock == nullptr)
-				m_pBlock = AllocatorInitialize(sizeof(T), 0);
-			T* pObject = reinterpret_cast<T*>(ReserveItem(m_pBlock));
-			//new (pObject) T();
-			return pObject;
-		}
-
-		void Free(T* pObject)
-		{
-			//(pObject)->~T();
-			FreeItem(m_pBlock, pObject);
-		}
-
 	private:
 		struct BlockNode
 		{
 			BlockNode* pNext;
 		};
 
+	public:
 		struct Block
 		{
 			size_t NodeSize;
@@ -45,13 +19,14 @@ namespace FluxStd
 			Block* pNext;
 		};
 
-		static Block* AllocatorInitialize(size_t nodeSize, size_t capacity = 1)
+	public:
+		static Block* Initialize(size_t nodeSize, size_t capacity = 1)
 		{
-			Block* pBlock = ReserveBlock(nullptr, nodeSize, capacity);
+			Block* pBlock = AllocateBlock(nullptr, nodeSize, capacity);
 			return pBlock;
 		}
 
-		static void AllocatorUninitialize(Block* pAllocator)
+		static void Uninitialize(Block* pAllocator)
 		{
 			while (pAllocator)
 			{
@@ -61,7 +36,37 @@ namespace FluxStd
 			}
 		}
 
-		static Block* ReserveBlock(Block* pAllocator, size_t nodeSize, size_t capacity)
+		static void* Alloc(Block* pAllocator)
+		{
+			if (pAllocator == nullptr)
+				return nullptr;
+
+			if (pAllocator->pFree == nullptr)
+			{
+				size_t newCapacity = (pAllocator->Capacity + 1) >> 1;
+				AllocateBlock(pAllocator, pAllocator->NodeSize, newCapacity);
+				pAllocator->Capacity += newCapacity;
+			}
+			BlockNode* pFree = pAllocator->pFree;
+			void* pPtr = reinterpret_cast<char*>(pFree) + sizeof(BlockNode);
+			pAllocator->pFree = pFree->pNext;
+			pFree->pNext = nullptr;
+			return pPtr;
+		}
+
+		static void Free(Block* pAllocator, void* pPtr)
+		{
+			if (pAllocator == nullptr || pPtr == nullptr)
+				return;
+			char* pData = reinterpret_cast<char*>(pPtr);
+			BlockNode* pNode = reinterpret_cast<BlockNode*>(pData - sizeof(BlockNode));
+
+			pNode->pNext = pAllocator->pFree;
+			pAllocator->pFree = pNode;
+		}
+
+	private:
+		static Block* AllocateBlock(Block* pAllocator, size_t nodeSize, size_t capacity)
 		{
 			if (capacity == 0)
 				capacity = 1;
@@ -99,36 +104,5 @@ namespace FluxStd
 			pAllocator->pFree = pNode;
 			return pBlock;
 		}
-
-		static void* ReserveItem(Block* pAllocator)
-		{
-			if (pAllocator == nullptr)
-				return nullptr;
-
-			if (pAllocator->pFree == nullptr)
-			{
-				size_t newCapacity = (pAllocator->Capacity + 1) >> 1;
-				ReserveBlock(pAllocator, pAllocator->NodeSize, newCapacity);
-				pAllocator->Capacity += newCapacity;
-			}
-			BlockNode* pFree = pAllocator->pFree;
-			void* pPtr = reinterpret_cast<char*>(pFree) + sizeof(BlockNode);
-			pAllocator->pFree = pFree->pNext;
-			pFree->pNext = nullptr;
-			return pPtr;
-		}
-
-		static void FreeItem(Block* pAllocator, void* pPtr)
-		{
-			if (pAllocator == nullptr || pPtr == nullptr)
-				return;
-			char* pData = reinterpret_cast<char*>(pPtr);
-			BlockNode* pNode = reinterpret_cast<BlockNode*>(pData - sizeof(BlockNode));
-
-			pNode->pNext = pAllocator->pFree;
-			pAllocator->pFree = pNode;
-		}
-
-		Block* m_pBlock;
 	};
 }
