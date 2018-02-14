@@ -1,5 +1,6 @@
 #pragma once
 #include <assert.h>
+#include "BlockAllocator.h"
 
 namespace FluxStd
 {
@@ -131,7 +132,7 @@ namespace FluxStd
 			m_pTable(nullptr), m_Size(0)
 		{
 			AllocateBuckets(START_BUCKETS);
-			m_pHead = new Node();
+			m_pHead = ReserveNode();
 			m_pTail = m_pHead;
 		}
 
@@ -148,7 +149,7 @@ namespace FluxStd
 			if (m_pTable)
 			{
 				Clear();
-				delete m_pHead;
+				FreeNode(m_pHead);
 				m_pHead = nullptr;
 				delete[] m_pTable;
 				m_pTable = nullptr;
@@ -262,7 +263,7 @@ namespace FluxStd
 					if (pNode == m_pHead)
 						m_pHead = pNode->pNext;
 
-					delete pNode;
+					FreeNode(pNode);
 					--m_Size;
 					break;
 				}
@@ -299,7 +300,7 @@ namespace FluxStd
 					if (pNode == m_pHead)
 						m_pHead = pNode->pNext;
 
-					delete pNode;
+					FreeNode(pNode);
 					--m_Size;
 					break;
 				}
@@ -315,7 +316,7 @@ namespace FluxStd
 			while (pNode != m_pTail)
 			{
 				Node* pNext = pNode->pNext;
-				delete pNode;
+				FreeNode(pNode);
 				pNode = pNext;
 			}
 			m_pHead = m_pTail;
@@ -363,7 +364,7 @@ namespace FluxStd
 				return pExists;
 			}
 
-			Node* pNewNode = new Node(key);
+			Node* pNewNode = ReserveNode(key);
 
 			//Add node to linked listed
 			Node* pPrev = m_pTail->pPrev;
@@ -421,6 +422,33 @@ namespace FluxStd
 			}
 		}
 
+		Node* ReserveNode()
+		{
+			Node* pNode = m_Allocator.Reserve();
+			new(pNode) Node();
+			return pNode;
+		}
+
+		Node* ReserveNode(const K& key)
+		{
+			Node* pNode = m_Allocator.Reserve();
+			new(pNode) Node(key);
+			return pNode;
+		}
+
+		Node* ReserveNode(const K& key, const V& value)
+		{
+			Node* pNode = m_Allocator.Reserve();
+			new(pNode) Node(key, value);
+			return pNode;
+		}
+
+		void FreeNode(Node* pNode)
+		{
+			(pNode)->~Node();
+			m_Allocator.Free(pNode);
+		}
+
 		//Array of pointers representing the table used for random access
 		Node** m_pTable;
 		//The amount of buckets
@@ -433,6 +461,8 @@ namespace FluxStd
 		Node* m_pHead;
 		//The tail of the linked list
 		Node* m_pTail;
+
+		BlockAllocator<Node> m_Allocator;
 
 		//The amount of buckets to start with
 		static const size_t START_BUCKETS = 8;
