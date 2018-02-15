@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "Algorithm.h"
 
 namespace FluxStd
 {
@@ -16,14 +17,6 @@ namespace FluxStd
 		{
 			bool operator()(const T& a, const T& b) const { return a > b; }
 		};
-	}
-
-	template <class T> 
-	inline void Swap(T& first, T& second)
-	{
-		T temp = first;
-		first = second;
-		second = temp;
 	}
 
 	template<typename T>
