@@ -2,6 +2,8 @@
 
 namespace FluxStd
 {
+#pragma region Swap
+
 	template <class T>
 	inline void Swap(T& first, T& second)
 	{
@@ -16,8 +18,10 @@ namespace FluxStd
 		Swap(*pFirst, *pSecond);
 	}
 
+#pragma endregion Swap
+
 	template<typename T, typename UnaryPredicate>
-	void ForEach(T* pBegin, T* pEnd, UnaryPredicate functor)
+	void ForEach(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, UnaryPredicate functor)
 	{
 		while (pBegin != pEnd)
 		{
@@ -26,8 +30,32 @@ namespace FluxStd
 		}
 	}
 
+	template<typename T, typename UnaryPredicate>
+	void ForEach(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, UnaryPredicate functor)
+	{
+		while (pBegin != pEnd)
+		{
+			functor(*pBegin);
+			++pBegin;
+		}
+	}
+
+#pragma region Search
+
 	template<typename T>
-	T* Find(T* pBegin, T* pEnd, const T& value)
+	RandomAccessIterator<T> Find(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, const T& value)
+	{
+		while (pBegin != pEnd)
+		{
+			if (*pBegin == value)
+				return pBegin;
+			++pBegin;
+		}
+		return pEnd;
+	}
+
+	template<typename T>
+	RandomAccessConstIterator<T> Find(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, const T& value)
 	{
 		while (pBegin != pEnd)
 		{
@@ -39,7 +67,7 @@ namespace FluxStd
 	}
 
 	template<typename T, typename UnaryPredicate>
-	T* FindIf(T* pBegin, T* pEnd, UnaryPredicate functor)
+	RandomAccessIterator<T> FindIf(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, UnaryPredicate functor)
 	{
 		while (pBegin != pEnd)
 		{
@@ -50,17 +78,32 @@ namespace FluxStd
 		return pEnd;
 	}
 
+	template<typename T, typename UnaryPredicate>
+	RandomAccessConstIterator<T> FindIf(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, UnaryPredicate functor)
+	{
+		while (pBegin != pEnd)
+		{
+			if (functor(*pBegin))
+				return pBegin;
+			++pBegin;
+		}
+		return pEnd;
+	}
+
+#pragma region Search
+
 	template<class T>
-	void Reverse(T* pBegin, T* pEnd)
+	void Reverse(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
 	{
 		while (pBegin != pEnd && pBegin != --pEnd)
 		{
-			IteratorSwap(pBegin++, pEnd);
+			Swap(*pBegin, *pEnd);
+			++pBegin;
 		}
 	}
 
 	template<class T>
-	void Replace(T* pBegin, T* pEnd, const T& oldValue, const T& newValue)
+	void Replace(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, const T& oldValue, const T& newValue)
 	{
 		while (pBegin != pEnd)
 		{
@@ -71,7 +114,7 @@ namespace FluxStd
 	}
 
 	template<class T, typename UnaryPredicate>
-	void ReplaceIf(T* pBegin, T* pEnd, UnaryPredicate predicate, const T& newValue)
+	void ReplaceIf(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, UnaryPredicate predicate, const T& newValue)
 	{
 		while (pBegin != pEnd)
 		{
@@ -80,6 +123,8 @@ namespace FluxStd
 			++pBegin;
 		}
 	}
+
+#pragma region Comparison
 
 	template<class T>
 	const T& Max(const T& a, const T& b)
@@ -90,19 +135,35 @@ namespace FluxStd
 	template<class T, typename Compare>
 	const T& Max(const T& a, const T& b, Compare compare)
 	{
-		return compare(a, b) ? b : a;
+		return compare(a, b) ? a : b;
 	}
 
 	template<class T>
-	T* MaxElement(const T* pBegin, const T* pEnd)
+	RandomAccessIterator<T> MaxElement(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		T* pLargest = pBegin;
+		RandomAccessIterator<T> pLargest = pBegin;
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (*pLargest > *pBegin)
+			if (*pBegin > *pLargest)
+				pLargest = pBegin;
+			++pBegin;
+		}
+		return pLargest;
+	}
+
+	template<class T>
+	RandomAccessConstIterator<T> MaxElement(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessConstIterator<T> pLargest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (*pBegin > *pLargest)
 				pLargest = pBegin;
 			++pBegin;
 		}
@@ -110,18 +171,35 @@ namespace FluxStd
 	}
 
 	template<class T, typename Compare>
-	T* MaxElement(const T* pBegin, const T* pEnd, Compare compare)
+	RandomAccessIterator<T> MaxElement(RandomAccessIterator<T> pBegin, const RandomAccessIterator<T> pEnd, Compare compare)
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		T* pLargest = pBegin;
+		RandomAccessIterator<T> pLargest = pBegin;
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (compare(*pLargest, *pBegin))
+			if (compare(*pBegin, *pLargest))
 				pLargest = pBegin;
 			++pBegin;
 		}
 		return pLargest;
 	}
+
+	template<class T, typename Compare>
+	RandomAccessConstIterator<T> MaxElement(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, Compare compare)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessConstIterator<T> pLargest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (compare(*pBegin, *pLargest))
+				pLargest = pBegin;
+			++pBegin;
+		}
+		return pLargest;
+	}
+#pragma endregion Comparison
 }
