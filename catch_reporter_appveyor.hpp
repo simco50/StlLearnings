@@ -1,3 +1,4 @@
+#include <string>
 /*
  *  Created by Justin R. Wilson on 2/19/2017.
  *  Copyright 2017 Justin R. Wilson. All rights reserved.
@@ -38,6 +39,10 @@ namespace Catch
 
         bool assertionEnded( AssertionStats const& /*_assertionStats*/ ) override { return true; }
 
+		std::string	basename(std::string const& pathname)
+		{
+			return std::string(std::find_if(pathname.rbegin(), pathname.rend(), [](char c) {return c == '\\'; }).base(), pathname.end());
+		}
 
 		void testCaseEnded(TestCaseStats const& _testCaseStats) override
 		{
@@ -46,24 +51,23 @@ namespace Catch
 			str << "appveyor.exe AddTest ";
 			str << "\"" << _testCaseStats.testInfo.name << "\"";
 			str << " -Framework CatchReporter";
-			string fileName = _testCaseStats.testInfo.lineInfo.file;
-			fileName = fileName.substr(fileName.rfind('\\') + 1);
-			str << " -FileName FluxStd.exe";
+			string fileName = basename(_testCaseStats.testInfo.lineInfo.file);
+			str << " -FileName " << fileName;
 			if (_testCaseStats.totals.assertions.allPassed())
 			{
 				str << " -Outcome Passed";
+				str << " -StdOut \"Passed " << _testCaseStats.totals.assertions.total() << " assertions" << "\"";
 			}
 			else if (_testCaseStats.totals.assertions.allOk())
 			{
 				str << " -Outcome Inconclusive";
+				str << " -StdOut \" Test inconclusive: '" << _testCaseStats.testInfo.lineInfo.file << "' at line " << _testCaseStats.testInfo.lineInfo.line << "\"";
 			}
 			else
 			{
 				str << " -Outcome Failed";
+				str << " -StdErr \" Test failed: '" << _testCaseStats.testInfo.lineInfo.file << "' at line " << _testCaseStats.testInfo.lineInfo.line << "\"";
 			}
-			str << " -StdOut \"" << _testCaseStats.stdOut << "\"";
-			str << " -StdErr \"" << _testCaseStats.stdErr << "\"";
-
 			string cmd = str.str();
 			system(cmd.c_str());
 		}
