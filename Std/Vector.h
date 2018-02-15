@@ -1,12 +1,17 @@
 #pragma once
 #include <initializer_list>
 #include <assert.h>
+#include "Iterator.h"
 
 namespace FluxStd
 {
 	template<typename T>
 	class Vector
 	{
+	public:
+		using Iterator = RandomAccessIterator<T>;
+		using ConstIterator = RandomAccessConstIterator<T>;
+
 	public:
 		Vector() :
 			m_pBuffer(nullptr), m_pCurrent(nullptr), m_Size(0), m_Capacity(0)
@@ -250,16 +255,17 @@ namespace FluxStd
 			--m_pCurrent;
 		}
 
-		void EraseAt(const size_t index)
+		Iterator EraseAt(const size_t index)
 		{
 			assert(index < m_Size);
 			for (size_t i = index; i < m_Size - 1; ++i)
 				m_pBuffer[i] = std::move(m_pBuffer[i + 1]);
 			--m_Size;
 			--m_pCurrent;
+			return Iterator(m_pBuffer + index);
 		}
 
-		void Insert(const size_t index, const T& value)
+		Iterator Insert(const size_t index, const T& value)
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
@@ -270,28 +276,23 @@ namespace FluxStd
 			m_pBuffer[index] = value;
 			++m_Size;
 			++m_pCurrent;
+			return Iterator(m_pBuffer + index);
 		}
 
-		size_t Find(const T& value) const
+		ConstIterator Find(const T& value) const
 		{
-			for (const T* pIt = m_pBuffer; pIt < m_pCurrent; ++pIt)
-			{
-				if (*pIt == value)
-					return pIt - m_pBuffer;
-			}
-			return Vector::Npos;
+			ConstIterator pIt = Begin();
+			while (pIt != End() && *pIt != value)
+				++pIt;
+			return pIt;
 		}
 
-		size_t RFind(const T& value) const
+		Iterator Find(const T& value)
 		{
-			if (m_Size == 0)
-				return Vector::Npos;
-			for (const T* pIt = m_pCurrent - 1; pIt >= m_pBuffer; --pIt)
-			{
-				if (*pIt == value)
-					return pIt - m_pBuffer;
-			}
-			return Vector::Npos;
+			Iterator pIt = Begin();
+			while (pIt != End() && *pIt != value)
+				++pIt;
+			return pIt;
 		}
 
 		const T* Data() const { return m_pBuffer; }
@@ -300,8 +301,15 @@ namespace FluxStd
 		size_t Capacity() const { return m_Capacity; }
 		bool Empty() const { return m_Size == 0; }
 
-		T* begin() const { return m_pBuffer; }
-		T* end() const { return m_pCurrent; }
+		Iterator begin() { return Iterator(m_pBuffer); }
+		Iterator end() { return Iterator(m_pCurrent); }
+		ConstIterator begin() const { return ConstIterator(m_pBuffer); }
+		ConstIterator end() const { return ConstIterator(m_pCurrent); }
+
+		Iterator Begin() { return Iterator(m_pBuffer); }
+		Iterator End() { return Iterator(m_pCurrent); }
+		ConstIterator Begin() const { return ConstIterator(m_pBuffer); }
+		ConstIterator End() const { return ConstIterator(m_pCurrent); }
 
 		T& Front() { assert(m_pBuffer); return *m_pBuffer; }
 		const T& Front() const { assert(m_pBuffer); return *m_pBuffer; }

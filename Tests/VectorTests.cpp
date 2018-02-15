@@ -586,27 +586,14 @@ TEST_CASE("Vector - Insert - Has capacity - At the end", "[Vector]")
 TEST_CASE("Vector - Find - Non-empty", "[Vector]")
 {
 	Vector<int> v1 = { 1, 2, 3, 4, 5, 4 };
-	REQUIRE(v1.Find(4) == 3);
-	REQUIRE(v1.Find(12) == Vector<int>::Npos);
+	REQUIRE(v1.Find(4) != v1.end());
+	REQUIRE(v1.Find(12) == v1.end());
 }
 
 TEST_CASE("Vector - Find - Empty", "[Vector]")
 {
 	Vector<int> v1;
-	REQUIRE(v1.Find(12) == Vector<int>::Npos);
-}
-
-TEST_CASE("Vector - RFind - Non-empty", "[Vector]")
-{
-	Vector<int> v1 = { 1, 2, 3, 4, 5, 4, 10 };
-	REQUIRE(v1.RFind(4) == 5);
-	REQUIRE(v1.RFind(12) == Vector<int>::Npos);
-}
-
-TEST_CASE("Vector - RFind - Empty", "[Vector]")
-{
-	Vector<int> v1;
-	REQUIRE(v1.RFind(12) == Vector<int>::Npos);
+	REQUIRE(v1.Find(12) == v1.end());
 }
 
 #pragma endregion Search

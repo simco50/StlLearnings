@@ -27,104 +27,156 @@ namespace FluxStd
 		V Value;
 	};
 
+	template<typename K, typename V>
+	struct HashNode
+	{
+		HashNode() :
+			pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+		{}
+
+		HashNode(const K& key, const V& value) :
+			Pair(key, value), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+		{}
+		HashNode(const K& key) :
+			Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+		{}
+
+		KeyValuePair<K, V> Pair;
+		//The previous node in the linked list
+		HashNode* pPrev;
+		//The next node in the linked list
+		HashNode* pNext;
+		//The next node in the bucket
+		HashNode* pDown;
+	};
+
+	template<typename K, typename V>
+	struct HashIterator
+	{
+		using Node = HashNode<K, V>;
+
+		HashIterator(Node* pNode) :
+			pNode(pNode)
+		{}
+
+		HashIterator(const HashIterator& other) :
+			pNode(other.pNode)
+		{
+		}
+
+		HashIterator& operator=(const HashIterator& other)
+		{
+			pNode = other.pNode;
+			return *this;
+		}
+
+		HashIterator& operator++()
+		{
+			if (pNode)
+				pNode = pNode->pNext;
+			return *this;
+		}
+
+		HashIterator operator++(int)
+		{
+			HashIterator* pIt = this;
+			if (pNode)
+				pNode = pNode->pNext;
+			return pIt;
+		}
+
+		HashIterator& operator--()
+		{
+			if (pNode)
+				pNode = pNode->pPrev;
+			return *this;
+		}
+
+		HashIterator operator--(int)
+		{
+			HashIterator* pIt = this;
+			if (pNode)
+				pNode = pNode->pPrev;
+			return pIt;
+		}
+
+		bool operator==(const HashIterator& other) const { return pNode == other.pNode; }
+		bool operator!=(const HashIterator& other) const { return pNode != other.pNode; }
+
+		KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
+		KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
+
+		Node* pNode;
+	};
+
+	template<typename K, typename V>
+	struct HashConstIterator
+	{
+		using Node = HashNode<K, V>;
+
+		HashConstIterator(Node* pNode) :
+			pNode(pNode)
+		{}
+
+		HashConstIterator(const HashConstIterator& other) :
+			pNode(other.pNode)
+		{
+		}
+
+		HashConstIterator& operator=(const HashConstIterator& other)
+		{
+			pNode = other.pNode;
+			return *this;
+		}
+
+		HashConstIterator& operator++()
+		{
+			if (pNode)
+				pNode = pNode->pNext;
+			return *this;
+		}
+
+		HashConstIterator operator++(int)
+		{
+			HashConstIterator* pIt = this;
+			if (pNode)
+				pNode = pNode->pNext;
+			return pIt;
+		}
+
+		HashConstIterator& operator--()
+		{
+			if (pNode)
+				pNode = pNode->pPrev;
+			return *this;
+		}
+
+		HashConstIterator operator--(int)
+		{
+			HashConstIterator* pIt = this;
+			if (pNode)
+				pNode = pNode->pPrev;
+			return pIt;
+		}
+
+		bool operator==(const HashConstIterator& other) const { return pNode == other.pNode; }
+		bool operator!=(const HashConstIterator& other) const { return pNode != other.pNode; }
+
+		const KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
+		const KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
+
+		Node* pNode;
+	};
+
 	template<typename K, typename V, typename HashType = std::hash<K>>
 	class HashMap
 	{
-	private:
-		struct Node
-		{
-			Node() :
-				pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-			{}
-
-			Node(const K& key, const V& value) :
-				Pair(key, value), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-			{}
-			Node(const K& key) :
-				Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
-			{}
-
-			KeyValuePair<K, V> Pair;
-			//The previous node in the linked list
-			Node* pPrev;
-			//The next node in the linked list
-			Node* pNext;
-			//The next node in the bucket
-			Node* pDown;
-		};
-
-		struct IteratorBase
-		{
-			IteratorBase(Node* pNode) :
-				pNode(pNode)
-			{}
-
-			IteratorBase(const IteratorBase& other) :
-				pNode(other.pNode)
-			{
-			}
-
-			IteratorBase& operator=(const IteratorBase& other)
-			{
-				pNode = other.pNode;
-				return *this;
-			}
-
-			IteratorBase& operator++()
-			{
-				if (pNode)
-					pNode = pNode->pNext;
-				return *this;
-			}
-
-			IteratorBase operator++(int)
-			{
-				IteratorBase* pIt = this;
-				if (pNode)
-					pNode = pNode->pNext;
-				return pIt;
-			}
-
-			IteratorBase& operator--()
-			{
-				if (pNode)
-					pNode = pNode->pPrev;
-				return *this;
-			}
-
-			IteratorBase operator--(int)
-			{
-				IteratorBase* pIt = this;
-				if (pNode)
-					pNode = pNode->pPrev;
-				return pIt;
-			}
-
-			bool operator==(const IteratorBase& other) const { return pNode == other.pNode; }
-			bool operator!=(const IteratorBase& other) const { return pNode != other.pNode; }
-
-			Node* pNode;
-		};
+	public:
+		using Iterator = HashIterator<K, V>;
+		using ConstIterator = HashConstIterator<K, V>;
+		using Node = HashNode<K, V>;
 
 	public:
-		struct Iterator : public IteratorBase
-		{
-			Iterator(Node* pNode) : IteratorBase(pNode)
-			{}
-
-			KeyValuePair<K, V>* operator->() { return &pNode->Pair; }
-			KeyValuePair<K, V>& operator*() { return pNode->Pair; }
-		};
-
-		struct ConstIterator : public IteratorBase
-		{
-			ConstIterator(Node* pNode) : IteratorBase(pNode)
-			{}
-
-			const KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
-			const KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
-		};
-
 		HashMap() :
 			m_pTable(nullptr), m_Size(0)
 		{
@@ -153,6 +205,17 @@ namespace FluxStd
 			m_pHead = ReserveNode();
 			m_pTail = m_pHead;
 			Insert(other);
+		}
+
+		HashMap(HashMap&& other) :
+			m_BucketCount(other.m_BucketCount), m_Size(other.m_Size), m_pHead(other.m_pHead), m_pTail(other.m_pTail), m_pTable(other.m_pTable), m_pBlock(other.m_pBlock), m_Hasher(other.m_Hasher)
+		{
+			other.m_BucketCount = 0;
+			other.m_Size = 0;
+			other.m_pHead = nullptr;
+			other.m_pTail = nullptr;
+			other.m_pTable = nullptr;
+			other.m_pBlock = nullptr;
 		}
 
 		~HashMap()
