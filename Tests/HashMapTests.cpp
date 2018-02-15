@@ -5,7 +5,7 @@
 using namespace FluxStd;
 using namespace std;
 
-TEST_CASE("HashMap - Constructor - Empty", "[HashMap]")
+TEST_CASE("HashMap - Constructor", "[HashMap]")
 {
 	SECTION("Empty")
 	{
@@ -266,7 +266,7 @@ TEST_CASE("HashMap - Accessors", "[HashMap]")
 	}
 }
 
-TEST_CASE("HashMap - Comparison - ", "[HashMap]")
+TEST_CASE("HashMap - Comparison", "[HashMap]")
 {
 	SECTION("Empty")
 	{
@@ -308,7 +308,7 @@ TEST_CASE("HashMap - Comparison - ", "[HashMap]")
 	}
 }
 
-TEST_CASE("HashMap - Clear - Empty", "[HashMap]")
+TEST_CASE("HashMap - Clear", "[HashMap]")
 {
 	SECTION("Empty")
 	{

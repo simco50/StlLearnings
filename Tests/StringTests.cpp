@@ -4,7 +4,7 @@ using namespace FluxStd;
 
 #pragma region StrLen
 
-TEST_CASE("String - StrLen - Non-empty char", "[String]")
+TEST_CASE("String - StrLen", "[String]")
 {
 	SECTION("Non-empty char")
 	{
@@ -165,7 +165,7 @@ TEST_CASE("String - Constructor", "[String]")
 
 #pragma region Assignment
 
-TEST_CASE("String - Assignment - Deep copy", "[String]")
+TEST_CASE("String - Assignment", "[String]")
 {
 	SECTION("Deep copy")
 	{
@@ -284,7 +284,7 @@ TEST_CASE("String - Operator+=", "[String]")
 	}
 }
 
-TEST_CASE("String - Operator== & Operator!= - String", "[String]")
+TEST_CASE("String - Operator== & Operator!=", "[String]")
 {
 	SECTION("String")
 	{
@@ -308,16 +308,15 @@ TEST_CASE("String - Operator== & Operator!= - String", "[String]")
 		REQUIRE(!(s1 == "HeLlo"));
 		REQUIRE(!(s1 != "Hello"));
 	}
-}
+	SECTION("wchar_t array")
+	{
+		String s1("Hello");
+		REQUIRE(s1 != L"HeLlo");
+		REQUIRE(s1 == L"Hello");
 
-TEST_CASE("String - Operator== & Operator!= - wchar_t array", "[String]")
-{
-	String s1("Hello");
-	REQUIRE(s1 != L"HeLlo");
-	REQUIRE(s1 == L"Hello");
-
-	REQUIRE(!(s1 == L"HeLlo"));
-	REQUIRE(!(s1 != L"Hello"));
+		REQUIRE(!(s1 == L"HeLlo"));
+		REQUIRE(!(s1 != L"Hello"));
+	}
 }
 
 TEST_CASE("String - Accessors", "[String]")
@@ -463,7 +462,7 @@ TEST_CASE("String - ShrinkToFit", "[String]")
 
 #pragma region Addition/Deletion
 
-TEST_CASE("String - Push - ", "[String]")
+TEST_CASE("String - Push", "[String]")
 {
 	SECTION("Empty String")
 	{
@@ -735,7 +734,7 @@ TEST_CASE("String - Append", "[String]")
 	}
 }
 
-TEST_CASE("String - Substring - Empty String - No length", "[String]")
+TEST_CASE("String - Substring", "[String]")
 {
 	SECTION("")
 	{
@@ -799,7 +798,7 @@ TEST_CASE("String - Find", "[String]")
 	}
 }
 
-TEST_CASE("String - RFind - char", "[String]")
+TEST_CASE("String - RFind", "[String]")
 {
 	SECTION("char")
 	{
