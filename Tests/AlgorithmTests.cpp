@@ -70,7 +70,7 @@ TEST_CASE("Algorithm - Max", "[Algorithm]")
 	SECTION("Max - Predicate")
 	{
 		int a = 1, b = 4;
-		REQUIRE(Max(a, b, [](int x, int y) { return x > y; }) == b);
+		REQUIRE(Max(a, b, [](int x, int y) { return x < y; }) == b);
 	}
 	SECTION("MaxElement")
 	{
@@ -81,7 +81,33 @@ TEST_CASE("Algorithm - Max", "[Algorithm]")
 	SECTION("MaxElement - Predicate")
 	{
 		Vector<int> v1 = { 1,2,2,3 };
-		Vector<int>::Iterator i = MaxElement(v1.Begin(), v1.End(), [](int x, int y) { return x > y; });
+		Vector<int>::Iterator i = MaxElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
 		REQUIRE(*i == 3);
+	}
+}
+
+TEST_CASE("Algorithm - Min", "[Algorithm]")
+{
+	SECTION("Min")
+	{
+		int a = 1, b = 4;
+		REQUIRE(Min(a, b) == a);
+	}
+	SECTION("Min - Predicate")
+	{
+		int a = 1, b = 4;
+		REQUIRE(Min(a, b, [](int x, int y) { return x < y; }) == a);
+	}
+	SECTION("MinElement")
+	{
+		Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::Iterator i = MinElement(v1.Begin(), v1.End());
+		REQUIRE(*i == 1);
+	}
+	SECTION("MinElement - Predicate")
+	{
+		Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::Iterator i = MinElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
+		REQUIRE(*i == 1);
 	}
 }

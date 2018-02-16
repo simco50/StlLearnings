@@ -232,7 +232,7 @@ namespace FluxStd
 		void SwapEraseAt(const size_t index)
 		{
 			assert(index < m_Size);
-			std::swap(m_pBuffer[index], Back());
+			Swap(m_pBuffer[index], Back());
 			--m_Size;
 		}
 
@@ -240,7 +240,7 @@ namespace FluxStd
 		{
 			assert(index < m_Size);
 			for (size_t i = index; i < m_Size - 1; ++i)
-				m_pBuffer[i] = std::move(m_pBuffer[i + 1]);
+				m_pBuffer[i] = Move(m_pBuffer[i + 1]);
 			--m_Size;
 			return Iterator(m_pBuffer + index);
 		}
@@ -252,7 +252,7 @@ namespace FluxStd
 				Reserve(m_Size + 1);
 
 			for (size_t i = m_Size; i > index; --i)
-				m_pBuffer[i] = std::move(m_pBuffer[i - 1]);
+				m_pBuffer[i] = Move(m_pBuffer[i - 1]);
 			m_pBuffer[index] = value;
 			++m_Size;
 			return Iterator(m_pBuffer + index);

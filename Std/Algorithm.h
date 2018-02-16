@@ -129,13 +129,13 @@ namespace FluxStd
 	template<class T>
 	const T& Max(const T& a, const T& b)
 	{
-		return a > b ? a : b;
+		return a < b ? b : a;
 	}
 
 	template<class T, typename Compare>
 	const T& Max(const T& a, const T& b, Compare compare)
 	{
-		return compare(a, b) ? a : b;
+		return compare(a, b) ? b : a;
 	}
 
 	template<class T>
@@ -147,7 +147,7 @@ namespace FluxStd
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (*pBegin > *pLargest)
+			if (*pLargest < *pBegin)
 				pLargest = pBegin;
 			++pBegin;
 		}
@@ -163,7 +163,7 @@ namespace FluxStd
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (*pBegin > *pLargest)
+			if (*pLargest < *pBegin)
 				pLargest = pBegin;
 			++pBegin;
 		}
@@ -179,7 +179,8 @@ namespace FluxStd
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (compare(*pBegin, *pLargest))
+			//pLargest < pBegin
+			if (compare(*pLargest, *pBegin))
 				pLargest = pBegin;
 			++pBegin;
 		}
@@ -195,11 +196,88 @@ namespace FluxStd
 		++pBegin;
 		while (pBegin != pEnd)
 		{
-			if (compare(*pBegin, *pLargest))
+			//pLargest < pBegin
+			if (compare(*pLargest, *pBegin))
 				pLargest = pBegin;
 			++pBegin;
 		}
 		return pLargest;
+	}
+
+	template<class T>
+	const T& Min(const T& a, const T& b)
+	{
+		return a < b ? a : b;
+	}
+
+	template<class T, typename Compare>
+	const T& Min(const T& a, const T& b, Compare compare)
+	{
+		return compare(a, b) ? a : b;
+	}
+
+	template<class T>
+	RandomAccessIterator<T> MinElement(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessIterator<T> pSmallest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (*pBegin < *pSmallest)
+				pSmallest = pBegin;
+			++pBegin;
+		}
+		return pSmallest;
+	}
+
+	template<class T>
+	RandomAccessConstIterator<T> MinElement(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessConstIterator<T> pSmallest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (*pBegin < *pSmallest)
+				pSmallest = pBegin;
+			++pBegin;
+		}
+		return pSmallest;
+	}
+
+	template<class T, typename Compare>
+	RandomAccessIterator<T> MinElement(RandomAccessIterator<T> pBegin, const RandomAccessIterator<T> pEnd, Compare compare)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessIterator<T> pSmallest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (compare(*pBegin, *pSmallest))
+				pSmallest = pBegin;
+			++pBegin;
+		}
+		return pSmallest;
+	}
+
+	template<class T, typename Compare>
+	RandomAccessConstIterator<T> MinElement(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, Compare compare)
+	{
+		if (pBegin == pEnd)
+			return pEnd;
+		RandomAccessConstIterator<T> pSmallest = pBegin;
+		++pBegin;
+		while (pBegin != pEnd)
+		{
+			if (compare(*pBegin, *pSmallest))
+				pSmallest = pBegin;
+			++pBegin;
+		}
+		return pSmallest;
 	}
 #pragma endregion Comparison
 }

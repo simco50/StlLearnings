@@ -1,5 +1,6 @@
 #include "../catch.hpp"
 #include "../Std/Vector.h"
+#include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region Constructors
@@ -73,7 +74,7 @@ TEST_CASE("Vector - Constructor", "[Vector]")
 	SECTION("Move semantics")
 	{
 		Vector<int> v1 = { 0, 1, 2, 3, 4 };
-		Vector<int> v2(std::move(v1));
+		Vector<int> v2(Move(v1));
 
 		REQUIRE(v1.Data() == nullptr);
 		REQUIRE(v1.Size() == 0);

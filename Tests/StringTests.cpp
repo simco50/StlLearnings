@@ -1,5 +1,6 @@
 #include "../catch.hpp"
 #include "../Std/String.h"
+#include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region StrLen
@@ -107,7 +108,7 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s1.Data() != nullptr);
 		REQUIRE(s1.C_Str() != nullptr);
 
-		String s2(std::move(s1));
+		String s2(Move(s1));
 		REQUIRE(s1.Empty());
 		REQUIRE(s1 == "");
 		REQUIRE(s1.Size() == 0);
@@ -534,7 +535,7 @@ TEST_CASE("String - Swap", "[String]")
 		REQUIRE(s1.Capacity() == 5);
 		REQUIRE(s2.Size() == 3);
 		REQUIRE(s2.Capacity() == 3);
-		s1.Swap(s2);
+		s1.StringSwap(s2);
 		REQUIRE(s1.Size() == 3);
 		REQUIRE(s1.Capacity() == 3);
 		REQUIRE(s2.Size() == 5);
@@ -552,7 +553,7 @@ TEST_CASE("String - Swap", "[String]")
 		REQUIRE(s1.Capacity() == 5);
 		REQUIRE(s2.Size() == 0);
 		REQUIRE(s2.Capacity() == 0);
-		s1.Swap(s2);
+		s1.StringSwap(s2);
 		REQUIRE(s1.Size() == 0);
 		REQUIRE(s1.Capacity() == 0);
 		REQUIRE(s2.Size() == 5);
