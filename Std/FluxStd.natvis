@@ -7,6 +7,11 @@
 		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
 		<DisplayString Condition="Npos &lt; m_Size">Invalid</DisplayString>
 		<DisplayString Condition="m_pBuffer!=0">{m_pBuffer}</DisplayString>
+		<Expand>
+			<Item Name="String" ExcludeView="simple">m_pBuffer</Item>
+			<Item Name="[Capacity]" ExcludeView="simple">m_Capacity</Item>
+			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+		</Expand>
 	</Type>
 
 	<!--Array-->

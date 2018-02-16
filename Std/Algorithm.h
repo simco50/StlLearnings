@@ -163,8 +163,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessIterator<T> pLargest = pBegin;
-		++pBegin;
+		RandomAccessIterator<T> pLargest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (*pLargest < *pBegin)
@@ -179,8 +178,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessConstIterator<T> pLargest = pBegin;
-		++pBegin;
+		RandomAccessConstIterator<T> pLargest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (*pLargest < *pBegin)
@@ -195,8 +193,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessIterator<T> pLargest = pBegin;
-		++pBegin;
+		RandomAccessIterator<T> pLargest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			//pLargest < pBegin
@@ -212,8 +209,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessConstIterator<T> pLargest = pBegin;
-		++pBegin;
+		RandomAccessConstIterator<T> pLargest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			//pLargest < pBegin
@@ -241,8 +237,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessIterator<T> pSmallest = pBegin;
-		++pBegin;
+		RandomAccessIterator<T> pSmallest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (*pBegin < *pSmallest)
@@ -257,8 +252,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessConstIterator<T> pSmallest = pBegin;
-		++pBegin;
+		RandomAccessConstIterator<T> pSmallest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (*pBegin < *pSmallest)
@@ -273,8 +267,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessIterator<T> pSmallest = pBegin;
-		++pBegin;
+		RandomAccessIterator<T> pSmallest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (compare(*pBegin, *pSmallest))
@@ -289,8 +282,7 @@ namespace FluxStd
 	{
 		if (pBegin == pEnd)
 			return pEnd;
-		RandomAccessConstIterator<T> pSmallest = pBegin;
-		++pBegin;
+		RandomAccessConstIterator<T> pSmallest = pBegin++;
 		while (pBegin != pEnd)
 		{
 			if (compare(*pBegin, *pSmallest))

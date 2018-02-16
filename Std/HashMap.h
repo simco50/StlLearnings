@@ -386,6 +386,27 @@ namespace FluxStd
 		size_t Size() const { return m_Size; }
 		size_t BucketCount() const { return m_BucketCount; }
 		constexpr float MaxLoadFactor() const { return 0.75f; }
+		float LoadFactor() const { return (float)m_Size / m_BucketCount; }
+
+		size_t BucketSize(const size_t idx) const
+		{
+			assert(idx < m_BucketCount);
+			Node* pNode = m_pTable[idx];
+			size_t size = 0;
+			while (pNode != nullptr)
+			{
+				++size;
+				pNode = pNode->pDown;
+			}
+			return size;
+		}
+
+		size_t Bucket(const K& key) const
+		{
+			assert(Find(key) != End());
+			return Hash(key);
+		}
+
 
 		//The amount of buckets to start with
 		static const size_t START_BUCKETS = 8;
