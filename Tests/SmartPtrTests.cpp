@@ -1,27 +1,39 @@
 #pragma once
 #include "../catch.hpp"
 #include "../Std/SharedPtr.h"
-#include "../Std/WeakPtr.h"
 #include "../Std/UniquePtr.h"
 #include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region UniquePtr
 
-TEST_CASE("UniquePtr - Create empty constructor", "[UniquePtr]")
+TEST_CASE("UniquePtr - Constructor", "[UniquePtr]")
 {
-	UniquePtr<int> a;
-	REQUIRE(!a.IsValid());
-}
-
-TEST_CASE("UniquePtr - Create constructor", "[UniquePtr]")
-{
-	UniquePtr<int> a(new int(1));
-	REQUIRE(a.IsValid());
-	REQUIRE(a.Get() != nullptr);
-	REQUIRE(*a.Get() == 1);
-	REQUIRE(*a == 1);
-	REQUIRE(a == true);
+	SECTION("Empty")
+	{
+		UniquePtr<int> a;
+		REQUIRE(!a.IsValid());
+	}
+	SECTION("Non-empty")
+	{
+		UniquePtr<int> a(new int(1));
+		REQUIRE(a.IsValid());
+		REQUIRE(a.Get() != nullptr);
+		REQUIRE(*a.Get() == 1);
+		REQUIRE(*a == 1);
+		REQUIRE(a == true);
+	}
+	SECTION("Move semantics")
+	{
+		UniquePtr<int> a(new int(1));
+		UniquePtr<int> b(Move(a));
+		REQUIRE(!a.IsValid());
+		REQUIRE(a.Get() == nullptr);
+		REQUIRE(a == false);
+		REQUIRE(b.IsValid());
+		REQUIRE(b.Get() != nullptr);
+		REQUIRE(b);
+	}
 }
 
 TEST_CASE("UniquePtr - MakeUnique", "[UniquePtr]")
@@ -30,15 +42,18 @@ TEST_CASE("UniquePtr - MakeUnique", "[UniquePtr]")
 	REQUIRE(a.IsValid());
 }
 
-TEST_CASE("UniquePtr - Move semantics assignment", "[UniquePtr]")
+TEST_CASE("UniquePtr - Assignment", "[UniquePtr]")
 {
-	UniquePtr<int> a = MakeUnique<int>(1);
-	REQUIRE(a.IsValid());
-	UniquePtr<int> b;
-	REQUIRE(!b.IsValid());
-	b = Move(a);
-	REQUIRE(!a.IsValid());
-	REQUIRE(b.IsValid());
+	SECTION("Move semantics")
+	{
+		UniquePtr<int> a = MakeUnique<int>(1);
+		REQUIRE(a.IsValid());
+		UniquePtr<int> b;
+		REQUIRE(!b.IsValid());
+		b = Move(a);
+		REQUIRE(!a.IsValid());
+		REQUIRE(b.IsValid());
+	}
 }
 
 TEST_CASE("UniquePtr - Swap", "[UniquePtr]")
@@ -79,15 +94,6 @@ TEST_CASE("UniquePtr - Comparison", "[UniquePtr]")
 	UniquePtr<int> b = MakeUnique<int>(1);
 	REQUIRE(!(a == b));
 	REQUIRE(a != b);
-}
-
-TEST_CASE("UniquePtr - Move semantics constructor", "[UniquePtr]")
-{
-	UniquePtr<int> a = MakeUnique<int>(1);
-	REQUIRE(a.IsValid());
-	UniquePtr<int> b(Move(a));
-	REQUIRE(!a.IsValid());
-	REQUIRE(b.IsValid());
 }
 
 TEST_CASE("UniquePtr - Array", "[UniquePtr]")
