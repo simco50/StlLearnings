@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<!--String-->
+	<Type Name="FluxStd::String">
+		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
+		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<DisplayString Condition="Npos &lt; m_Size">Invalid</DisplayString>
+		<DisplayString Condition="m_pBuffer!=0">{m_pBuffer}</DisplayString>
+	</Type>
+
+	<!--Array-->
+	<Type Name="FluxStd::Array&lt;*&gt;">
+		<Expand>
+			<Item Name="[Size]" ExcludeView="simple">$T2</Item>
+			<ArrayItems>
+				<Size>$T2</Size>
+				<ValuePointer>m_Data</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<!--Vector-->
+	<Type Name="FluxStd::Vector&lt;*&gt;">
+		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
+		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<DisplayString Condition="Npos &lt; m_Size">Invalid</DisplayString>
+		<Expand>
+			<Item Name="[Capacity]" ExcludeView="simple">m_Capacity</Item>
+			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+			<ArrayItems Condition="m_Size &lt;= Npos">
+				<Size>m_Size</Size>
+				<ValuePointer>m_pBuffer</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<!--HashMap-->
+	<Type Name="FluxStd::HashMap&lt;*&gt;">
+		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
+		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<Expand>
+			<Item Name="[Buckets]" ExcludeView="simple">m_BucketCount</Item>
+			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+			<LinkedListItems>
+				<Size>m_Size</Size>
+				<HeadPointer>m_pHead</HeadPointer>
+				<NextPointer>pNext</NextPointer>
+				<ValueNode>this</ValueNode>
+			</LinkedListItems>
+		</Expand>
+	</Type>
+	<Type Name="FluxStd::HashMap&lt;*&gt;::Node">
+		<Expand>
+			<Item Name="[Key]" ExcludeView="simple">Pair.Key</Item>
+			<Item Name="[Value]" ExcludeView="simple">Pair.Value</Item>
+		</Expand>
+	</Type>
+
+</AutoVisualizer>

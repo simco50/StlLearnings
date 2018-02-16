@@ -1,7 +1,9 @@
 #pragma once
 #include <assert.h>
-#include <string>
 #include <iostream>
+#include "Casting.h"
+#include "Iterator.h"
+#include "Algorithm.h"
 
 namespace FluxStd
 {
@@ -26,25 +28,28 @@ namespace FluxStd
 	class String
 	{
 	public:
+		using Iterator = RandomAccessIterator<char>;
+		using ConstIterator = RandomAccessConstIterator<char>;
+	public:
 		String() :
-			m_pBuffer(nullptr), m_pCurrent(nullptr), m_Size(0), m_Capacity(0)
+			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{}
 
 		String(const size_t size, const char value = '\0') :
-			m_pBuffer(new char[size + 1]), m_pCurrent(m_pBuffer + size), m_Size(size), m_Capacity(size)
+			m_pBuffer(new char[size + 1]), m_Size(size), m_Capacity(size)
 		{
 			memset(m_pBuffer, value, m_Size);
-			*m_pCurrent = '\0';
+			m_pBuffer[size] = '\0';
 		}
 
 		String(const char* pData) :
-			m_pBuffer(nullptr), m_pCurrent(nullptr), m_Size(0), m_Capacity(0)
+			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{
 			Append(pData);
 		}
 
 		explicit String(const wchar_t* pData) :
-			m_pBuffer(nullptr), m_pCurrent(nullptr), m_Size(0)
+			m_pBuffer(nullptr), m_Size(0)
 		{
 			Append(pData);
 		}
@@ -54,7 +59,6 @@ namespace FluxStd
 			if (pBegin == nullptr || pEnd == nullptr)
 			{
 				m_pBuffer = nullptr;
-				m_pCurrent = nullptr;
 				m_Capacity = 0;
 				m_Size = 0;
 			}
@@ -65,23 +69,21 @@ namespace FluxStd
 				m_pBuffer = new char[m_Size + 1];
 				memcpy(m_pBuffer, pBegin, m_Size);
 				m_pBuffer[m_Size] = '\0';
-				m_pCurrent = m_pBuffer + m_Size;
 			}
 		}
 
 		//Move semantics
 		String(String&& other) :
-			m_pBuffer(other.m_pBuffer), m_pCurrent(other.m_pCurrent), m_Size(other.m_Size), m_Capacity(other.m_Capacity)
+			m_pBuffer(other.m_pBuffer), m_Size(other.m_Size), m_Capacity(other.m_Capacity)
 		{
 			other.m_pBuffer = nullptr;
-			other.m_pCurrent = nullptr;
 			other.m_Size = 0;
 			other.m_Capacity = 0;
 		}
 
 		//Deep copy
 		String(const String& other) :
-			m_pBuffer(nullptr), m_pCurrent(nullptr), m_Size(0), m_Capacity(0)
+			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{
 			Append(other.Data());
 		}
@@ -188,7 +190,6 @@ namespace FluxStd
 
 		void Clear()
 		{
-			m_pCurrent = m_pBuffer;
 			m_Size = 0;
 		}
 
@@ -210,7 +211,6 @@ namespace FluxStd
 			memset(m_pBuffer + copyWidth, 0, (size - copyWidth));
 			m_Size = size;
 			m_Capacity = size;
-			m_pCurrent = m_pBuffer + size;
 			m_pBuffer[m_Size] = '\0';
 		}
 
@@ -232,7 +232,6 @@ namespace FluxStd
 				m_pBuffer = new char[size + 1];
 			}
 			m_Capacity = size;
-			m_pCurrent = m_pBuffer + m_Size;
 			m_pBuffer[m_Size] = '\0';
 		}
 
@@ -247,47 +246,34 @@ namespace FluxStd
 			{
 				Reserve(m_Size + CAPACITY_STEP_SIZE);
 			}
-			*m_pCurrent = std::move(value);
+			*(m_pBuffer + m_Size) = value;
 			++m_Size;
-			++m_pCurrent;
 			m_pBuffer[m_Size] = '\0';
 		}
 
 		char Pop()
 		{
 			assert(m_Size > 0);
-			char value = *(--m_pCurrent);
+			char value = Back();
 			--m_Size;
 			m_pBuffer[m_Size] = '\0';
 			return value;
 		}
 
-		void Swap(String& other)
+		void StringSwap(String& other)
 		{
-			char* pTempBuffer = m_pBuffer;
-			m_pBuffer = other.m_pBuffer;
-			other.m_pBuffer = pTempBuffer;
-
-			pTempBuffer = m_pCurrent;
-			m_pCurrent = other.m_pCurrent;
-			other.m_pCurrent = pTempBuffer;
-
-			size_t tempSize = m_Size;
-			m_Size = other.m_Size;
-			other.m_Size = tempSize;
-
-			tempSize = m_Capacity;
-			m_Capacity = other.m_Capacity;
-			other.m_Capacity = tempSize;
+			Swap(m_pBuffer, other.m_pBuffer);
+			Swap(m_Size, other.m_Size);
+			Swap(m_Capacity, other.m_Capacity);
 		}
 
 		void Assign(const size_t amount, const char value)
 		{
 			if (m_Size + amount > m_Capacity)
 				Reserve(m_Size + amount);
-			for (size_t i = 0; i < amount; ++i, ++m_pCurrent)
+			for (size_t i = 0; i < amount; ++i)
 			{
-				memcpy(m_pCurrent, &value, sizeof(char));
+				memcpy(m_pBuffer + m_Size + i, &value, sizeof(char));
 			}
 			m_Size += amount;
 			m_pBuffer[m_Size] = '\0';
@@ -299,7 +285,6 @@ namespace FluxStd
 			for (size_t i = index; i < m_Size - 1; ++i)
 				m_pBuffer[i] = m_pBuffer[i + 1];
 			--m_Size;
-			--m_pCurrent;
 			m_pBuffer[m_Size] = '\0';
 		}
 
@@ -313,7 +298,6 @@ namespace FluxStd
 				m_pBuffer[i] = m_pBuffer[i - 1];
 			m_pBuffer[index] = value;
 			++m_Size;
-			++m_pCurrent;
 			m_pBuffer[m_Size] = '\0';
 		}
 
@@ -328,7 +312,6 @@ namespace FluxStd
 				m_pBuffer[i] = m_pBuffer[i - len];
 			memcpy(m_pBuffer + index, pData, len);
 			m_Size += len;
-			m_pCurrent += len;
 		}
 
 		void Append(const char* pData)
@@ -347,7 +330,6 @@ namespace FluxStd
 				m_Capacity = m_Size;
 				m_pBuffer = pNewBuffer;
 				m_pBuffer[m_Size] = '\0';
-				m_pCurrent = m_pBuffer + m_Size;
 			}
 		}
 
@@ -368,7 +350,6 @@ namespace FluxStd
 			m_Capacity = m_Size;
 			m_pBuffer = pNewBuffer;
 			m_pBuffer[m_Size] = '\0';
-			m_pCurrent = m_pBuffer + m_Size;
 		}
 
 		String Substring(const unsigned int from, const size_t length = String::Npos)
@@ -376,7 +357,7 @@ namespace FluxStd
 			if (length == String::Npos)
 			{
 				assert(from <= m_Size);
-				return String(m_pBuffer + from, m_pCurrent);
+				return String(m_pBuffer + from, m_pBuffer + m_Size);
 			}
 			else
 			{
@@ -511,7 +492,7 @@ namespace FluxStd
 			auto size = std::snprintf(nullptr, 0, format, args...);
 			String output(size + 1, '\0');
 			sprintf_s(&output[0], output.Size(), format, args...);
-			return std::move(output);
+			return Move(output);
 		}
 
 		friend std::ostream& operator<<(std::ostream& os, const String& string)
@@ -532,18 +513,25 @@ namespace FluxStd
 
 		char& Front() { assert(m_pBuffer); return *m_pBuffer; }
 		const char& Front() const { assert(m_pBuffer); return *m_pBuffer; }
-		char& Back() { assert(m_pCurrent); return *(m_pCurrent - 1); }
-		const char& Back() const { assert(m_pCurrent); return *(m_pCurrent - 1); }
-		const char* begin() const { return m_pBuffer; }
-		const char* end() const { return m_pCurrent; }
+		char& Back() { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
+		const char& Back() const { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
+		
+		Iterator begin() { return Iterator(m_pBuffer); }
+		Iterator end() { return Iterator(m_pBuffer + m_Size); }
+		ConstIterator begin() const { return ConstIterator(m_pBuffer); }
+		ConstIterator end() const { return ConstIterator(m_pBuffer + m_Size); }
 
+		Iterator Begin() { return Iterator(m_pBuffer); }
+		Iterator End() { return Iterator(m_pBuffer + m_Size); }
+		ConstIterator Begin() const { return ConstIterator(m_pBuffer); }
+		ConstIterator End() const { return ConstIterator(m_pBuffer + m_Size); }
+		
 		constexpr static size_t MaxSize() { return Npos; }
 		static const size_t Npos = ~(size_t)0;
 		static const int CAPACITY_STEP_SIZE = 4;
 
 	private:
 		char* m_pBuffer;
-		char* m_pCurrent;
 		size_t m_Size;
 		size_t m_Capacity;
 	};
