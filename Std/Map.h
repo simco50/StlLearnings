@@ -1,43 +1,12 @@
 #pragma once
+#include "KeyValuePair.h"
 
 namespace FluxStd
 {
 	template<typename K, typename V>
-	struct KeyValuePair
-	{
-		KeyValuePair() :
-			Key(K())
-		{}
-
-		KeyValuePair(const K& key) :
-			Key(key)
-		{}
-
-		KeyValuePair(const K& key, const V& value) :
-			Key(key), Value(value)
-		{}
-
-		KeyValuePair(const KeyValuePair& other) :
-			Key(other.Key), Value(other.Value)
-		{}
-		
-		KeyValuePair& operator=(const KeyValuePair& other)
-		{
-			Key = other.Key;
-			Value = other.Value;
-		}
-
-		bool operator==(const KeyValuePair& other) { return Key == other.Key && Value == other.Value; }
-		bool operator!=(const KeyValuePair& other) { return Key != other.Key || Value != other.Value; }
-
-		K Key;
-		V Value;
-	};
-
-	template<typename K, typename V>
 	class Map
 	{
-	public:
+	private:
 		struct Node
 		{
 			Node* pParent = nullptr;
@@ -91,6 +60,7 @@ namespace FluxStd
 			}
 		};
 
+	public:
 		Map() :
 			m_pRoot(nullptr), m_Size(0)
 		{}
