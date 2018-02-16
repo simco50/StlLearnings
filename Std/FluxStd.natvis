@@ -56,5 +56,27 @@
 			<Item Name="[Value]" ExcludeView="simple">Pair.Value</Item>
 		</Expand>
 	</Type>
+	
+	<!--SmartPtr-->
+	<Type Name="FluxStd::SharedPtr&lt;*&gt;">
+		<DisplayString Condition="m_pPtr==0">Empty</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_pPtr</Item>
+			<Item Name="Reference" ExcludeView="simple">m_pRefCount</Item>
+		</Expand>
+	</Type>
+	<Type Name="FluxStd::WeakPtr&lt;*&gt;">
+		<DisplayString Condition="m_pPtr==0">Empty</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_pPtr</Item>
+			<Item Name="Reference" ExcludeView="simple">m_pRefCount</Item>
+		</Expand>
+	</Type>
+	<Type Name="FluxStd::UniquePtr&lt;*&gt;">
+		<DisplayString Condition="m_pPtr==0">Empty</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_pPtr</Item>
+		</Expand>
+	</Type>
 
 </AutoVisualizer>
