@@ -1,37 +1,15 @@
 #pragma once
 #include <assert.h>
 #include "BlockAllocator.h"
+#include "KeyValuePair.h"
 
 namespace FluxStd
 {
 	template<typename K, typename V>
-	struct KeyValuePair
-	{
-		KeyValuePair()
-		{}
-
-		KeyValuePair(const K& key, const V& value) :
-			Key(key), Value(value)
-		{}
-		KeyValuePair(const K& key) :
-			Key(key)
-		{}
-
-		KeyValuePair(const KeyValuePair& other) :
-			Key(other.Key), Value(other.Value)
-		{}
-
-		KeyValuePair& operator=(const KeyValuePair& other) = delete;
-
-		K Key;
-		V Value;
-	};
-
-	template<typename K, typename V>
 	struct HashNode
 	{
 		HashNode() :
-			pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+			Pair(K()), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
 		{}
 
 		HashNode(const K& key, const V& value) :
