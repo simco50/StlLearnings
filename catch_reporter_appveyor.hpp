@@ -56,6 +56,7 @@ namespace Catch
 			if (_testCaseStats.totals.assertions.allPassed())
 			{
 				str << " -Outcome Passed";
+				str << " -Duration " << _testCaseStats.durationMs;
 				str << " -StdOut \"Passed " << _testCaseStats.totals.assertions.total() << " assertions" << "\"";
 			}
 			else if (_testCaseStats.totals.assertions.allOk())

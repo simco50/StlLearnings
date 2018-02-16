@@ -3498,7 +3498,8 @@ namespace Catch {
                         Totals const& _totals,
                         std::string const& _stdOut,
                         std::string const& _stdErr,
-                        bool _aborting );
+                        bool _aborting,
+						unsigned int durationMs);
 
         TestCaseStats( TestCaseStats const& )              = default;
         TestCaseStats( TestCaseStats && )                  = default;
@@ -3508,6 +3509,7 @@ namespace Catch {
 
         TestCaseInfo testInfo;
         Totals totals;
+		unsigned int durationMs;
         std::string stdOut;
         std::string stdErr;
         bool aborting;
@@ -7459,12 +7461,14 @@ namespace Catch {
                                    Totals const& _totals,
                                    std::string const& _stdOut,
                                    std::string const& _stdErr,
-                                   bool _aborting )
+                                   bool _aborting, 
+                                   unsigned int _durationMs)
     : testInfo( _testInfo ),
         totals( _totals ),
         stdOut( _stdOut ),
         stdErr( _stdErr ),
-        aborting( _aborting )
+        aborting( _aborting ),
+		durationMs(_durationMs)
     {}
 
     TestCaseStats::~TestCaseStats() = default;
@@ -8452,18 +8456,20 @@ namespace Catch {
         TestCaseInfo testInfo = testCase.getTestCaseInfo();
 
         m_reporter->testCaseStarting(testInfo);
+		Timer timer;
 
         m_activeTestCase = &testCase;
 
         ITracker& rootTracker = m_trackerContext.startRun();
         assert(rootTracker.isSectionTracker());
         static_cast<SectionTracker&>(rootTracker).addInitialFilters(m_config->getSectionsToRun());
-        do {
+		timer.start();
+		do {
             m_trackerContext.startCycle();
             m_testCaseTracker = &SectionTracker::acquire(m_trackerContext, TestCaseTracking::NameAndLocation(testInfo.name, testInfo.lineInfo));
             runCurrentTest(redirectedCout, redirectedCerr);
         } while (!m_testCaseTracker->isSuccessfullyCompleted() && !aborting());
-
+		unsigned int ms = (unsigned int)ceil(timer.getElapsedMicroseconds() / 1000.0);
         Totals deltaTotals = m_totals.delta(prevTotals);
         if (testInfo.expectedToFail() && deltaTotals.testCases.passed > 0) {
             deltaTotals.assertions.failed++;
@@ -8475,7 +8481,8 @@ namespace Catch {
                                   deltaTotals,
                                   redirectedCout,
                                   redirectedCerr,
-                                  aborting()));
+                                  aborting(),
+                                  ms));
 
         m_activeTestCase = nullptr;
         m_testCaseTracker = nullptr;
@@ -8629,7 +8636,8 @@ namespace Catch {
                                   deltaTotals,
                                   std::string(),
                                   std::string(),
-                                  false));
+                                  false,
+                                  0));
         m_totals.testCases.failed++;
         testGroupEnded(std::string(), m_totals, 1, 1);
         m_reporter->testRunEnded(TestRunStats(m_runInfo, m_totals, false));
