@@ -13,6 +13,47 @@ TEST_CASE("Algorithm - ForEach", "[Algorithm]")
 	REQUIRE(v1[2] == 6);
 }
 
+TEST_CASE("Algorithm - Generate", "[Algorithm]")
+{
+	SECTION("Empty")
+	{
+		Vector<int> v1;
+		int nr = 0;
+		REQUIRE_NOTHROW(Generate(v1.Begin(), v1.End(), [&nr]() { return nr++; }));
+	}
+	SECTION("Non-empty")
+	{
+		Vector<int> v1;
+		v1.Resize(10);
+		int nr = 0;
+		Generate(v1.Begin(), v1.End(), [&nr]() { return nr++; });
+		for (size_t i = 0; i < 10; ++i)
+		{
+			REQUIRE(v1[i] == (int)i);
+		}
+	}
+}
+
+TEST_CASE("Algorithm - Fill", "[Algorithm]")
+{
+	SECTION("Empty")
+	{
+		Vector<int> v1;
+		REQUIRE_NOTHROW(Fill(v1.Begin(), v1.End(), 20));
+	}
+	SECTION("Non-empty")
+	{
+		Vector<int> v1;
+		size_t nr = 5;
+		v1.Resize(nr);
+		Fill(v1.Begin(), v1.End(), (int)nr);
+		for (size_t i = 0; i < nr; ++i)
+		{
+			REQUIRE(v1[i] == (int)nr);
+		}
+	}
+}
+
 TEST_CASE("Algorithm - Find", "[Algorithm]")
 {
 	SECTION("Find")

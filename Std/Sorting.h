@@ -38,6 +38,8 @@ namespace FluxStd
 	template<typename T>
 	void InsertionSort(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
 	{
+		if (pBegin == pEnd)
+			return;
 		for (RandomAccessIterator<T> i = pBegin + 1; i != pEnd; ++i)
 		{
 			T temp = *i;
@@ -54,6 +56,8 @@ namespace FluxStd
 	template<typename T, typename CompareFunctor>
 	void InsertionSort(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, CompareFunctor compare)
 	{
+		if (pBegin == pEnd)
+			return;
 		for (RandomAccessIterator<T> i = pBegin + 1; i != pEnd; ++i)
 		{
 			T temp = *i;
@@ -65,5 +69,57 @@ namespace FluxStd
 			}
 			*j = temp;
 		}
+	}
+
+	template<typename T>
+	bool IsSorted(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
+	{
+		if (pBegin == pEnd)
+			return true;
+		while(++pBegin != pEnd)
+		{
+			if (*pBegin < *(pBegin - 1))
+				return false;
+		}
+		return true;
+	}
+
+	template<typename T>
+	bool IsSorted(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd)
+	{
+		if (pBegin == pEnd)
+			return true;
+		while (++pBegin != pEnd)
+		{
+			if (*pBegin < *(pBegin - 1))
+				return false;
+		}
+		return true;
+	}
+
+	template<typename T, typename CompareFunctor>
+	bool IsSorted(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, CompareFunctor compare)
+	{
+		if (pBegin == pEnd)
+			return true;
+		while (++pBegin != pEnd)
+		{
+			if (compare(*pBegin, *(pBegin - 1)))
+				return false;
+		}
+		return true;
+	}
+
+	template<typename T, typename CompareFunctor>
+	bool IsSorted(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, CompareFunctor compare)
+	{
+		if (pBegin == pEnd)
+			return true;
+		while (++pBegin != pEnd)
+		{
+			if (compare(*pBegin, *(pBegin - 1)))
+				return false;
+		}
+		return true;
 	}
 }
