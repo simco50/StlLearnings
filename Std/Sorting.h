@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include "Algorithm.h"
 #include "Iterator.h"
 
@@ -69,6 +68,32 @@ namespace FluxStd
 			}
 			*j = temp;
 		}
+	}
+
+	template<typename T>
+	RandomAccessIterator<T> Partition(RandomAccessIterator<T> begin, RandomAccessIterator<T> end)
+	{
+		RandomAccessIterator<T> pivot = begin + rand() % Distance(begin, end);
+		Swap(*begin, *pivot);
+		pivot = begin;
+		RandomAccessIterator<T> i = begin , j = begin;
+		for (; j != end; j++)
+		{
+			if (*j < *pivot)
+				Swap(*j, *++i);
+		}
+		Swap(*pivot, *i);
+		return i;
+	}
+
+	template<typename T>
+	void QuickSort(RandomAccessIterator<T> begin, RandomAccessIterator<T> end)
+	{
+		if (begin == end)
+			return;
+		RandomAccessIterator<T> elementAtCorrectPosition = Partition(begin, end);
+		QuickSort(begin, elementAtCorrectPosition);
+		QuickSort(++elementAtCorrectPosition, end);
 	}
 
 	template<typename T>
