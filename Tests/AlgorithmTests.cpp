@@ -50,7 +50,7 @@ TEST_CASE("Algorithm - ForEach", "[Algorithm]")
 	{
 		int nr = 0;
 		const Vector<int> v1 = { 1,2,3 };
-		ForEach(v1.Begin(), v1.End(), [&nr](const int& a) { nr += 1; });
+		ForEach(v1.Begin(), v1.End(), [&nr](const int& a) { a; nr += 1; });
 		REQUIRE(nr == 3);
 	}
 }
