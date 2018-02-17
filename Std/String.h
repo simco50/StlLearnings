@@ -244,7 +244,7 @@ namespace FluxStd
 		{
 			if (m_Size >= m_Capacity)
 			{
-				Reserve(m_Size + CAPACITY_STEP_SIZE);
+				Reserve(CalculateGrowth(m_Size));
 			}
 			*(m_pBuffer + m_Size) = value;
 			++m_Size;
@@ -528,9 +528,14 @@ namespace FluxStd
 		
 		constexpr static size_t MaxSize() { return Npos; }
 		static const size_t Npos = ~(size_t)0;
-		static const int CAPACITY_STEP_SIZE = 4;
 
 	private:
+		size_t CalculateGrowth(const size_t oldSize)
+		{
+			size_t newSize = (size_t)floor(oldSize * 1.5);
+			return newSize == m_Capacity ? newSize + 1 : newSize;
+		}
+
 		char* m_pBuffer;
 		size_t m_Size;
 		size_t m_Capacity;

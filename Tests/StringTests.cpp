@@ -430,7 +430,6 @@ TEST_CASE("String - ShrinkToFit", "[String]")
 		s.ShrinkToFit();
 		REQUIRE(s.Capacity() == 5);
 		s.Push('C');
-		REQUIRE(s.Capacity() == 5 + String::CAPACITY_STEP_SIZE);
 		s.ShrinkToFit();
 		REQUIRE(s.Capacity() == 6);
 	}
@@ -470,18 +469,6 @@ TEST_CASE("String - Push", "[String]")
 		REQUIRE(s.Size() == 0);
 		s.Push('O');
 		REQUIRE(s.Size() == 1);
-		REQUIRE(s.Capacity() == String::CAPACITY_STEP_SIZE);
-		REQUIRE(s[0] == 'O');
-		for (size_t i = 0; i < String::CAPACITY_STEP_SIZE - 1; ++i)
-		{
-			s.Push((char)('A' + i));
-		}
-		REQUIRE(s.Size() == String::CAPACITY_STEP_SIZE);
-		REQUIRE(s.Capacity() == String::CAPACITY_STEP_SIZE);
-		s.Push('I');
-		REQUIRE(s.Size() == String::CAPACITY_STEP_SIZE + 1);
-		REQUIRE(s.Capacity() == 2 * String::CAPACITY_STEP_SIZE);
-		REQUIRE(s.Back() == 'I');
 	}
 	SECTION("Non-empty String")
 	{
@@ -492,17 +479,6 @@ TEST_CASE("String - Push", "[String]")
 		REQUIRE(pData != s.Data());
 		pData = s.Data();
 		REQUIRE(s.Size() == 4);
-		REQUIRE(s.Capacity() == 3 + String::CAPACITY_STEP_SIZE);
-		for (size_t i = 0; i < String::CAPACITY_STEP_SIZE - 1; ++i)
-		{
-			s.Push((char)(i + 'A'));
-		}
-		REQUIRE(pData == s.Data());
-		pData = s.Data();
-		REQUIRE(s.Capacity() == 3 + String::CAPACITY_STEP_SIZE);
-		s.Push('O');
-		REQUIRE(s.Capacity() == 3 + 2 * String::CAPACITY_STEP_SIZE);
-		REQUIRE(pData != s.Data());
 	}
 }
 
