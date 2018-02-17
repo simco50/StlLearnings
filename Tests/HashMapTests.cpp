@@ -151,6 +151,67 @@ TEST_CASE("HashMap - Find", "[HashMap]")
 	}
 }
 
+
+TEST_CASE("HashMap - Swap", "[HashMap]")
+{
+	SECTION("1 Empty - Member function")
+	{
+		using P = KeyValuePair<string, double>;
+		HashMap<string, double> map1;
+		HashMap<string, double> map2 = {
+			P("Hello", 1.23),
+			P("World", 2.46),
+			P("Lorem", 6.89),
+		};
+		map1.SwapMap(map2);
+		REQUIRE(map1.Size() == 3);
+		REQUIRE(map2.Size() == 0);
+	}
+	SECTION("1 Empty - Global function")
+	{
+		using P = KeyValuePair<string, double>;
+		HashMap<string, double> map1;
+		HashMap<string, double> map2 = {
+			P("Hello", 1.23),
+			P("World", 2.46),
+			P("Lorem", 6.89),
+		};
+		Swap(map1, map2);
+		REQUIRE(map1.Size() == 3);
+		REQUIRE(map2.Size() == 0);
+	}
+	SECTION("No empty - Member function")
+	{
+		using P = KeyValuePair<string, double>;
+		HashMap<string, double> map1 = {
+			P("Lorem", 6.89),
+		};
+		HashMap<string, double> map2 = {
+			P("Hello", 1.23),
+			P("World", 2.46),
+			P("Lorem", 6.89),
+		};
+		map1.SwapMap(map2);
+		REQUIRE(map1.Size() == 3);
+		REQUIRE(map2.Size() == 1);
+	}
+	SECTION("No empty - Global function")
+	{
+		using P = KeyValuePair<string, double>;
+		HashMap<string, double> map1 = {
+			P("Lorem", 6.89),
+		};
+		HashMap<string, double> map2 = {
+			P("Hello", 1.23),
+			P("World", 2.46),
+			P("Lorem", 6.89),
+		};
+		Swap(map1, map2);
+		REQUIRE(map1.Size() == 3);
+		REQUIRE(map2.Size() == 1);
+	}
+}
+
 TEST_CASE("HashMap - Insert", "[HashMap]")
 {
 	SECTION("Empty")

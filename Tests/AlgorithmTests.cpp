@@ -4,13 +4,55 @@
 
 using namespace FluxStd;
 
+TEST_CASE("Algorithm - Swap", "[Algorithm]")
+{
+	SECTION("Value")
+	{
+		int a = 4;
+		int b = 10;
+		Swap(a, b);
+		REQUIRE(a == 10);
+		REQUIRE(b == 4);
+	}
+	SECTION("Pointer")
+	{
+		int a = 4;
+		int b = 10;
+		int* pA = &a;
+		int* pB = &b;
+		IteratorSwap(pA, pB);
+		REQUIRE(a == 10);
+		REQUIRE(b == 4);
+	}
+	SECTION("Iterator")
+	{
+		int a = 4;
+		int b = 10;
+		RandomAccessIterator<int> pA(&a);
+		RandomAccessIterator<int> pB(&b);
+		IteratorSwap(pA, pB);
+		REQUIRE(a == 10);
+		REQUIRE(b == 4);
+	}
+}
+
 TEST_CASE("Algorithm - ForEach", "[Algorithm]")
 {
-	Vector<int> v1 = { 1,2,3 };
-	ForEach(v1.Begin(), v1.End(), [](int& a) { a *= 2; });
-	REQUIRE(v1[0] == 2);
-	REQUIRE(v1[1] == 4);
-	REQUIRE(v1[2] == 6);
+	SECTION("Non-const")
+	{
+		Vector<int> v1 = { 1,2,3 };
+		ForEach(v1.Begin(), v1.End(), [](int& a) { a *= 2; });
+		REQUIRE(v1[0] == 2);
+		REQUIRE(v1[1] == 4);
+		REQUIRE(v1[2] == 6);
+	}
+	SECTION("Const")
+	{
+		int nr = 0;
+		const Vector<int> v1 = { 1,2,3 };
+		ForEach(v1.Begin(), v1.End(), [&nr](const int& a) { nr += 1; });
+		REQUIRE(nr == 3);
+	}
 }
 
 TEST_CASE("Algorithm - Generate", "[Algorithm]")
@@ -56,15 +98,27 @@ TEST_CASE("Algorithm - Fill", "[Algorithm]")
 
 TEST_CASE("Algorithm - Find", "[Algorithm]")
 {
-	SECTION("Find")
+	SECTION("Find non-const")
 	{
 		Vector<int> v1 = { 1,2,3 };
 		REQUIRE(Find(v1.Begin(), v1.End(), 1) != v1.End());
 		REQUIRE(Find(v1.Begin(), v1.End(), 4) == v1.End());
 	}
-	SECTION("FindIf")
+	SECTION("Find Const")
+	{
+		const Vector<int> v1 = { 1,2,3 };
+		REQUIRE(Find(v1.Begin(), v1.End(), 1) != v1.End());
+		REQUIRE(Find(v1.Begin(), v1.End(), 4) == v1.End());
+	}
+	SECTION("FindIf - non-const")
 	{
 		Vector<int> v1 = { 1,2,3 };
+		REQUIRE(FindIf(v1.Begin(), v1.End(), [](int value) { return value == 1; }) != v1.End());
+		REQUIRE(FindIf(v1.Begin(), v1.End(), [](int value) { return value == 4; }) == v1.End());
+	}
+	SECTION("FindIf - Const")
+	{
+		const Vector<int> v1 = { 1,2,3 };
 		REQUIRE(FindIf(v1.Begin(), v1.End(), [](int value) { return value == 1; }) != v1.End());
 		REQUIRE(FindIf(v1.Begin(), v1.End(), [](int value) { return value == 4; }) == v1.End());
 	}
@@ -113,16 +167,28 @@ TEST_CASE("Algorithm - Max", "[Algorithm]")
 		int a = 1, b = 4;
 		REQUIRE(Max(a, b, [](int x, int y) { return x < y; }) == b);
 	}
-	SECTION("MaxElement")
+	SECTION("MaxElement - non-const")
 	{
 		Vector<int> v1 = { 1,2,2,3 };
 		Vector<int>::Iterator i = MaxElement(v1.Begin(), v1.End());
 		REQUIRE(*i == 3);
 	}
-	SECTION("MaxElement - Predicate")
+	SECTION("MaxElement - const")
+	{
+		const Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::ConstIterator i = MaxElement(v1.Begin(), v1.End());
+		REQUIRE(*i == 3);
+	}
+	SECTION("MaxElement - Predicate - non-const")
 	{
 		Vector<int> v1 = { 1,2,2,3 };
 		Vector<int>::Iterator i = MaxElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
+		REQUIRE(*i == 3);
+	}
+	SECTION("MaxElement - Predicate - const")
+	{
+		const Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::ConstIterator i = MaxElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
 		REQUIRE(*i == 3);
 	}
 }
@@ -139,16 +205,28 @@ TEST_CASE("Algorithm - Min", "[Algorithm]")
 		int a = 1, b = 4;
 		REQUIRE(Min(a, b, [](int x, int y) { return x < y; }) == a);
 	}
-	SECTION("MinElement")
+	SECTION("MinElement - non-const")
 	{
 		Vector<int> v1 = { 1,2,2,3 };
 		Vector<int>::Iterator i = MinElement(v1.Begin(), v1.End());
 		REQUIRE(*i == 1);
 	}
-	SECTION("MinElement - Predicate")
+	SECTION("MinElement - const")
+	{
+		const Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::ConstIterator i = MinElement(v1.Begin(), v1.End());
+		REQUIRE(*i == 1);
+	}
+	SECTION("MinElement - Predicate - non-const")
 	{
 		Vector<int> v1 = { 1,2,2,3 };
 		Vector<int>::Iterator i = MinElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
+		REQUIRE(*i == 1);
+	}
+	SECTION("MinElement - Predicate - const")
+	{
+		const Vector<int> v1 = { 1,2,2,3 };
+		Vector<int>::ConstIterator i = MinElement(v1.Begin(), v1.End(), [](int x, int y) { return x < y; });
 		REQUIRE(*i == 1);
 	}
 }

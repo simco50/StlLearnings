@@ -1,6 +1,5 @@
 #include "../catch.hpp"
 #include "../Std/String.h"
-#include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region StrLen

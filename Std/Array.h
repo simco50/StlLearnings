@@ -13,9 +13,7 @@ namespace FluxStd
 
 	public:
 		Array()
-		{
-			memset(&m_Data[0], 0, sizeof(T) * size);
-		}
+		{}
 
 		Array(const T& value)
 		{
@@ -25,6 +23,17 @@ namespace FluxStd
 
 		~Array()
 		{}
+
+		void Fill(const T& value)
+		{
+			for (size_t i = 0; i < size; ++i)
+				m_Data[i] = value;
+		}
+
+		void SwapArray(Array& other)
+		{
+			Swap((T*&)m_Data, (T*&)other.m_Data);
+		}
 
 		T& operator[](size_t index) { return m_Data[index]; }
 		const T& operator[](size_t index) const { return m_Data[index]; }
@@ -37,19 +46,6 @@ namespace FluxStd
 
 		T* Data() { return &m_Data[0]; }
 		const T* Data() const { return &m_Data[0]; }
-
-		void Fill(const T& value)
-		{
-			for (size_t i = 0; i < size; ++i)
-				m_Data[i] = value;
-		}
-
-		void Swap(Array& other)
-		{
-			T* pTemp = &m_Data;
-			&m_Data = &other.m_Data;
-			&other.m_Data = pTemp;
-		}
 
 		Iterator begin() { return Iterator(m_Data); }
 		Iterator end() { return Iterator(m_Data + size - 1); }
@@ -68,4 +64,10 @@ namespace FluxStd
 	private:
 		T m_Data[size];
 	};
+
+	template<typename T, size_t size>
+	void Swap(Array<T, size>& a, Array<T, size>& b)
+	{
+		a.SwapArray(b);
+	}
 }

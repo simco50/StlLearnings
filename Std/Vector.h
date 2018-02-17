@@ -2,8 +2,8 @@
 #include <initializer_list>
 #include <assert.h>
 #include "Iterator.h"
-#include "Casting.h"
 #include "Algorithm.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -34,7 +34,7 @@ namespace FluxStd
 		Vector(T* pData, const size_t size) :
 			m_pBuffer(new T[size]), m_Size(size), m_Capacity(size)
 		{
-			memcpy(m_pCurrent, pData, sizeof(T) * size);
+			memcpy(m_pBuffer, pData, sizeof(T) * size);
 		}
 
 		Vector(std::initializer_list<T> list) :
@@ -304,4 +304,10 @@ namespace FluxStd
 		size_t m_Size;
 		size_t m_Capacity;
 	};
+
+	template<typename T>
+	void Swap(Vector<T>& a, Vector<T>& b)
+	{
+		a.SwapVector(b);
+	}
 }
