@@ -1,5 +1,5 @@
 #pragma once
-#include "Casting.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -44,4 +44,12 @@ namespace FluxStd
 		T First;
 		U Second;
 	};
+
+	template<typename T, typename U>
+	void Swap(Pair<T, U>& a, Pair<T, U>& b)
+	{
+		Pair<T, U> temp(a);
+		a = b;
+		b = temp;
+	}
 }

@@ -1,6 +1,5 @@
 #include "../catch.hpp"
 #include "../Std/Vector.h"
-#include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region Constructors
@@ -40,6 +39,28 @@ TEST_CASE("Vector - Constructor", "[Vector]")
 	{
 		const size_t size = 5;
 		Vector<int> v(size, 50);
+		REQUIRE(v.Size() == size);
+		REQUIRE(v.Capacity() == size);
+		REQUIRE(!v.Empty());
+		REQUIRE(v.begin() != nullptr);
+		REQUIRE(v.end() != nullptr);
+		REQUIRE(v.begin() != v.end());
+
+		for (size_t i = 0; i < size; ++i)
+		{
+			REQUIRE(v.Data()[i] == 50);
+			REQUIRE(v[i] == 50);
+			REQUIRE(v.At(i) == 50);
+		}
+	}
+	SECTION("Data")
+	{
+		const size_t size = 5;
+		int* pData = new int[size];
+		for (size_t i = 0; i < size ; i++)
+			pData[i] = 50;
+		Vector<int> v(pData, size);
+		delete[] pData;
 		REQUIRE(v.Size() == size);
 		REQUIRE(v.Capacity() == size);
 		REQUIRE(!v.Empty());
@@ -334,7 +355,6 @@ TEST_CASE("Vector - ShrinkToFit", "[Vector]")
 		v1.ShrinkToFit();
 		REQUIRE(v1.Capacity() == 7);
 		v1.Push(10);
-		REQUIRE(v1.Capacity() == 7 + Vector<int>::CAPACITY_STEP_SIZE);
 		v1.ShrinkToFit();
 		REQUIRE(v1.Capacity() == 8);
 	}
@@ -374,18 +394,6 @@ TEST_CASE("Vector - Push", "[Vector]")
 		REQUIRE(v1.Size() == 0);
 		v1.Push(1);
 		REQUIRE(v1.Size() == 1);
-		REQUIRE(v1.Capacity() == Vector<int>::CAPACITY_STEP_SIZE);
-		REQUIRE(v1[0] == 1);
-		for (size_t i = 0; i < Vector<int>::CAPACITY_STEP_SIZE - 1; ++i)
-		{
-			v1.Push((int)i);
-		}
-		REQUIRE(v1.Size() == Vector<int>::CAPACITY_STEP_SIZE);
-		REQUIRE(v1.Capacity() == Vector<int>::CAPACITY_STEP_SIZE);
-		v1.Push(5);
-		REQUIRE(v1.Size() == Vector<int>::CAPACITY_STEP_SIZE + 1);
-		REQUIRE(v1.Capacity() == 2 * Vector<int>::CAPACITY_STEP_SIZE);
-		REQUIRE(v1.Back() == 5);
 	}
 	SECTION("Non-empty vector")
 	{
@@ -396,17 +404,6 @@ TEST_CASE("Vector - Push", "[Vector]")
 		REQUIRE(pData != v1.Data());
 		pData = v1.Data();
 		REQUIRE(v1.Size() == 4);
-		REQUIRE(v1.Capacity() == 3 + Vector<int>::CAPACITY_STEP_SIZE);
-		for (size_t i = 0; i < Vector<int>::CAPACITY_STEP_SIZE - 1; ++i)
-		{
-			v1.Push((int)i + 4);
-		}
-		REQUIRE(pData == v1.Data());
-		pData = v1.Data();
-		REQUIRE(v1.Capacity() == 3 + Vector<int>::CAPACITY_STEP_SIZE);
-		v1.Push(10);
-		REQUIRE(v1.Capacity() == 3 + 2 * Vector<int>::CAPACITY_STEP_SIZE);
-		REQUIRE(pData != v1.Data());
 	}
 }
 

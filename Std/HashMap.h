@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "BlockAllocator.h"
 #include "KeyValuePair.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -180,6 +181,7 @@ namespace FluxStd
 			m_pTable(nullptr), m_Size(0), m_BucketCount(other.m_BucketCount)
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 1);
+			AllocateBuckets(START_BUCKETS);
 			m_pHead = ReserveNode();
 			m_pTail = m_pHead;
 			Insert(other);
@@ -277,6 +279,16 @@ namespace FluxStd
 				Insert(pIt->Key, pIt->Value);
 				++pIt;
 			}
+		}
+
+		void SwapMap(HashMap& other)
+		{
+			Swap(m_BucketCount, other.m_BucketCount);
+			Swap(m_Size, other.m_Size);
+			Swap(m_pHead, other.m_pHead);
+			Swap(m_pTail, other.m_pTail);
+			Swap(m_pTable, other.m_pTable);
+			Swap(m_pBlock, other.m_pBlock);
 		}
 
 		Iterator Insert(const KeyValuePair<K, V>& pair)
@@ -386,6 +398,27 @@ namespace FluxStd
 		size_t Size() const { return m_Size; }
 		size_t BucketCount() const { return m_BucketCount; }
 		constexpr float MaxLoadFactor() const { return 0.75f; }
+		float LoadFactor() const { return (float)m_Size / m_BucketCount; }
+
+		size_t BucketSize(const size_t idx) const
+		{
+			assert(idx < m_BucketCount);
+			Node* pNode = m_pTable[idx];
+			size_t size = 0;
+			while (pNode != nullptr)
+			{
+				++size;
+				pNode = pNode->pDown;
+			}
+			return size;
+		}
+
+		size_t Bucket(const K& key) const
+		{
+			assert(Find(key) != End());
+			return Hash(key);
+		}
+
 
 		//The amount of buckets to start with
 		static const size_t START_BUCKETS = 8;
@@ -510,4 +543,10 @@ namespace FluxStd
 		//The hash functor
 		HashType m_Hasher;
 	};
+
+	template<typename K, typename V, typename Hasher>
+	void Swap(HashMap<K, V, Hasher>& a, HashMap<K, V, Hasher>& b)
+	{
+		a.SwapMap(b);
+	}
 }

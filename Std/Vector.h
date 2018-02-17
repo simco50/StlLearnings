@@ -2,8 +2,8 @@
 #include <initializer_list>
 #include <assert.h>
 #include "Iterator.h"
-#include "Casting.h"
 #include "Algorithm.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -34,7 +34,7 @@ namespace FluxStd
 		Vector(T* pData, const size_t size) :
 			m_pBuffer(new T[size]), m_Size(size), m_Capacity(size)
 		{
-			memcpy(m_pCurrent, pData, sizeof(T) * size);
+			memcpy(m_pBuffer, pData, sizeof(T) * size);
 		}
 
 		Vector(std::initializer_list<T> list) :
@@ -187,7 +187,7 @@ namespace FluxStd
 		{
 			if (m_Size >= m_Capacity)
 			{
-				Reserve(m_Size + CAPACITY_STEP_SIZE);
+				Reserve(CalculateGrowth(m_Size));
 			}
 			*(m_pBuffer + m_Size) = value;
 			++m_Size;
@@ -197,7 +197,7 @@ namespace FluxStd
 		{
 			if (m_Size >= m_Capacity)
 			{
-				Reserve(m_Size + CAPACITY_STEP_SIZE);
+				Reserve(CalculateGrowth(m_Size));
 			}
 			*(m_pBuffer + m_Size) = Move(value);
 			++m_Size;
@@ -297,11 +297,22 @@ namespace FluxStd
 
 		constexpr static size_t MaxSize() { return Npos; }
 		static const size_t Npos = ~(size_t)0;
-		static const int CAPACITY_STEP_SIZE = 4;
 
 	private:
+		size_t CalculateGrowth(const size_t oldSize)
+		{
+			size_t newSize = (size_t)floor(oldSize * 1.5);
+			return newSize == m_Capacity ? newSize + 1 : newSize;
+		}
+
 		T * m_pBuffer;
 		size_t m_Size;
 		size_t m_Capacity;
 	};
+
+	template<typename T>
+	void Swap(Vector<T>& a, Vector<T>& b)
+	{
+		a.SwapVector(b);
+	}
 }
