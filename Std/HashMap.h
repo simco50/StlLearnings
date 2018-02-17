@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "BlockAllocator.h"
 #include "KeyValuePair.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -280,6 +281,16 @@ namespace FluxStd
 			}
 		}
 
+		void SwapMap(HashMap& other)
+		{
+			Swap(m_BucketCount, other.m_BucketCount);
+			Swap(m_Size, other.m_Size);
+			Swap(m_pHead, other.m_pHead);
+			Swap(m_pTail, other.m_pTail);
+			Swap(m_pTable, other.m_pTable);
+			Swap(m_pBlock, other.m_pBlock);
+		}
+
 		Iterator Insert(const KeyValuePair<K, V>& pair)
 		{
 			Iterator pIt = GetOrCreate_Internal(pair.Key);
@@ -532,4 +543,10 @@ namespace FluxStd
 		//The hash functor
 		HashType m_Hasher;
 	};
+
+	template<typename K, typename V, typename Hasher>
+	void Swap(HashMap<K, V, Hasher>& a, HashMap<K, V, Hasher>& b)
+	{
+		a.SwapMap(b);
+	}
 }

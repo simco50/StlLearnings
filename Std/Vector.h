@@ -2,8 +2,8 @@
 #include <initializer_list>
 #include <assert.h>
 #include "Iterator.h"
-#include "Casting.h"
 #include "Algorithm.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -304,4 +304,10 @@ namespace FluxStd
 		size_t m_Size;
 		size_t m_Capacity;
 	};
+
+	template<typename T>
+	void Swap(Vector<T>& a, Vector<T>& b)
+	{
+		a.SwapVector(b);
+	}
 }

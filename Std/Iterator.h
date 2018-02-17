@@ -101,7 +101,7 @@ namespace FluxStd
 
 		RandomAccessConstIterator& operator++()
 		{
-			--pPtr;
+			++pPtr;
 			return *this;
 		}
 

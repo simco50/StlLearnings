@@ -2,24 +2,6 @@
 
 namespace FluxStd
 {
-#pragma region Swap
-
-	template<typename T>
-	inline void Swap(T& first, T& second)
-	{
-		T temp = first;
-		first = second;
-		second = temp;
-	}
-
-	template <class T>
-	inline void IteratorSwap(T pFirst, T pSecond)
-	{
-		Swap(*pFirst, *pSecond);
-	}
-
-#pragma endregion Swap
-
 	template<typename T, typename UnaryPredicate>
 	void ForEach(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, UnaryPredicate functor)
 	{

@@ -64,4 +64,10 @@ namespace FluxStd
 	private:
 		T m_Data[size];
 	};
+
+	template<typename T, size_t size>
+	void Swap(Array<T, size>& a, Array<T, size>& b)
+	{
+		a.SwapArray(b);
+	}
 }

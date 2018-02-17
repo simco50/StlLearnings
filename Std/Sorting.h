@@ -1,6 +1,7 @@
 #pragma once
 #include "Algorithm.h"
 #include "Iterator.h"
+#include "Utility.h"
 
 namespace FluxStd
 {
