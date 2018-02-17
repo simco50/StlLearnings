@@ -260,11 +260,11 @@ namespace FluxStd
 			return value;
 		}
 
-		void StringSwap(String& other)
+		void Swap(String& other)
 		{
-			Swap(m_pBuffer, other.m_pBuffer);
-			Swap(m_Size, other.m_Size);
-			Swap(m_Capacity, other.m_Capacity);
+			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
+			FluxStd::Swap(m_Size, other.m_Size);
+			FluxStd::Swap(m_Capacity, other.m_Capacity);
 		}
 
 		void Assign(const size_t amount, const char value)
@@ -544,6 +544,6 @@ namespace FluxStd
 	template<>
 	void Swap(String& a, String& b)
 	{
-		a.StringSwap(b);
+		a.Swap(b);
 	}
 }

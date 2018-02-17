@@ -30,9 +30,9 @@ namespace FluxStd
 				m_Data[i] = value;
 		}
 
-		void SwapArray(Array& other)
+		void Swap(Array& other)
 		{
-			Swap((T*&)m_Data, (T*&)other.m_Data);
+			FluxStd::Swap((T*&)m_Data, (T*&)other.m_Data);
 		}
 
 		T& operator[](size_t index) { return m_Data[index]; }
@@ -68,6 +68,6 @@ namespace FluxStd
 	template<typename T, size_t size>
 	void Swap(Array<T, size>& a, Array<T, size>& b)
 	{
-		a.SwapArray(b);
+		a.Swap(b);
 	}
 }

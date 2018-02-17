@@ -211,11 +211,11 @@ namespace FluxStd
 			return *pValue;
 		}
 
-		void SwapVector(Vector<T>& other)
+		void Swap(Vector<T>& other)
 		{
-			Swap(m_pBuffer, other.m_pBuffer);
-			Swap(m_Size, other.m_Size);
-			Swap(m_Capacity, other.m_Capacity);
+			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
+			FluxStd::Swap(m_Size, other.m_Size);
+			FluxStd::Swap(m_Capacity, other.m_Capacity);
 		}
 
 		void Assign(const size_t amount, T value)
@@ -232,7 +232,7 @@ namespace FluxStd
 		void SwapEraseAt(const size_t index)
 		{
 			assert(index < m_Size);
-			Swap(m_pBuffer[index], Back());
+			FluxStd::Swap(m_pBuffer[index], Back());
 			--m_Size;
 		}
 
@@ -313,6 +313,6 @@ namespace FluxStd
 	template<typename T>
 	void Swap(Vector<T>& a, Vector<T>& b)
 	{
-		a.SwapVector(b);
+		a.Swap(b);
 	}
 }

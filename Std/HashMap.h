@@ -281,14 +281,14 @@ namespace FluxStd
 			}
 		}
 
-		void SwapMap(HashMap& other)
+		void Swap(HashMap& other)
 		{
-			Swap(m_BucketCount, other.m_BucketCount);
-			Swap(m_Size, other.m_Size);
-			Swap(m_pHead, other.m_pHead);
-			Swap(m_pTail, other.m_pTail);
-			Swap(m_pTable, other.m_pTable);
-			Swap(m_pBlock, other.m_pBlock);
+			FluxStd::Swap(m_BucketCount, other.m_BucketCount);
+			FluxStd::Swap(m_Size, other.m_Size);
+			FluxStd::Swap(m_pHead, other.m_pHead);
+			FluxStd::Swap(m_pTail, other.m_pTail);
+			FluxStd::Swap(m_pTable, other.m_pTable);
+			FluxStd::Swap(m_pBlock, other.m_pBlock);
 		}
 
 		Iterator Insert(const KeyValuePair<K, V>& pair)
@@ -547,6 +547,6 @@ namespace FluxStd
 	template<typename K, typename V, typename Hasher>
 	void Swap(HashMap<K, V, Hasher>& a, HashMap<K, V, Hasher>& b)
 	{
-		a.SwapMap(b);
+		a.Swap(b);
 	}
 }

@@ -163,7 +163,7 @@ TEST_CASE("HashMap - Swap", "[HashMap]")
 			P("World", 2.46),
 			P("Lorem", 6.89),
 		};
-		map1.SwapMap(map2);
+		map1.Swap(map2);
 		REQUIRE(map1.Size() == 3);
 		REQUIRE(map2.Size() == 0);
 	}
@@ -191,7 +191,7 @@ TEST_CASE("HashMap - Swap", "[HashMap]")
 			P("World", 2.46),
 			P("Lorem", 6.89),
 		};
-		map1.SwapMap(map2);
+		map1.Swap(map2);
 		REQUIRE(map1.Size() == 3);
 		REQUIRE(map2.Size() == 1);
 	}
