@@ -7,26 +7,34 @@ namespace FluxStd
 	class UniquePtr
 	{
 	public:
-		UniquePtr() : m_pPtr(nullptr) {}
-		explicit UniquePtr(T* pPtr) : m_pPtr(pPtr) {}
+		UniquePtr() : 
+			m_pPtr(nullptr) 
+		{}
+
+		explicit UniquePtr(T* pPtr) : 
+			m_pPtr(pPtr) 
+		{}
 
 		//Delete copy
 		UniquePtr(const UniquePtr<T>& other) = delete;
-		//Delete assignment
-		UniquePtr& operator=(UniquePtr<T>& other) = delete;
+
 		//Move semantics
 		UniquePtr(UniquePtr<T>&& other) : m_pPtr(other.Detach()) {}
 		//Move semantics
+
+		~UniquePtr()
+		{
+			Release();
+		}
+
+		//Delete assignment
+		UniquePtr& operator=(UniquePtr<T>& other) = delete;
+
 		UniquePtr& operator=(UniquePtr<T>&& other)
 		{
 			Release();
 			m_pPtr = other.Detach();
 			return *this;
-		}
-
-		~UniquePtr()
-		{
-			Release();
 		}
 
 		void Swap(UniquePtr<T>& other)
@@ -66,7 +74,6 @@ namespace FluxStd
 		T** GetAddressOf() const { return &m_pPtr; }
 
 		bool IsValid() const { return m_pPtr != nullptr; }
-
 	private:
 		T* m_pPtr;
 	};

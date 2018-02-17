@@ -9,8 +9,10 @@ namespace FluxStd
 		ThreadSafe,
 	};
 
-	template<class T, SharedPtrType Mode = SharedPtrType::NonThreadSafe> class SharedPtr;
-	template<class T, SharedPtrType Mode = SharedPtrType::NonThreadSafe> class WeakPtr;
+	template<class T, SharedPtrType Mode = SharedPtrType::NonThreadSafe> 
+	class SharedPtr;
+	template<class T, SharedPtrType Mode = SharedPtrType::NonThreadSafe> 
+	class WeakPtr;
 
 	template<SharedPtrType type>
 	struct RefCount;
