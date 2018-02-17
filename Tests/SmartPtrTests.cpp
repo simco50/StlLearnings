@@ -2,7 +2,6 @@
 #include "../catch.hpp"
 #include "../Std/SharedPtr.h"
 #include "../Std/UniquePtr.h"
-#include "../Std/Casting.h"
 using namespace FluxStd;
 
 #pragma region UniquePtr

@@ -1,5 +1,4 @@
 #pragma once
-#include "Casting.h"
 #include <atomic>
 
 namespace FluxStd
