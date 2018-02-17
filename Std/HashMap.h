@@ -180,6 +180,7 @@ namespace FluxStd
 			m_pTable(nullptr), m_Size(0), m_BucketCount(other.m_BucketCount)
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 1);
+			AllocateBuckets(START_BUCKETS);
 			m_pHead = ReserveNode();
 			m_pTail = m_pHead;
 			Insert(other);

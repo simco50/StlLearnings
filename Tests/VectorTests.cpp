@@ -54,6 +54,28 @@ TEST_CASE("Vector - Constructor", "[Vector]")
 			REQUIRE(v.At(i) == 50);
 		}
 	}
+	SECTION("Data")
+	{
+		const size_t size = 5;
+		int* pData = new int[size];
+		for (size_t i = 0; i < size ; i++)
+			pData[i] = 50;
+		Vector<int> v(pData, size);
+		delete[] pData;
+		REQUIRE(v.Size() == size);
+		REQUIRE(v.Capacity() == size);
+		REQUIRE(!v.Empty());
+		REQUIRE(v.begin() != nullptr);
+		REQUIRE(v.end() != nullptr);
+		REQUIRE(v.begin() != v.end());
+
+		for (size_t i = 0; i < size; ++i)
+		{
+			REQUIRE(v.Data()[i] == 50);
+			REQUIRE(v[i] == 50);
+			REQUIRE(v.At(i) == 50);
+		}
+	}
 	SECTION("Initializer List")
 	{
 		Vector<int> v = { 0, 1, 2, 3, 4 };
