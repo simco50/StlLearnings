@@ -34,7 +34,7 @@ namespace FluxStd
 		Vector(T* pData, const size_t size) :
 			m_pBuffer(new T[size]), m_Size(size), m_Capacity(size)
 		{
-			memcpy(m_pCurrent, pData, sizeof(T) * size);
+			memcpy(m_pBuffer, pData, sizeof(T) * size);
 		}
 
 		Vector(std::initializer_list<T> list) :
