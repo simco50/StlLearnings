@@ -147,7 +147,7 @@ namespace FluxStd
 		};
 
 		Map() :
-			m_pRoot(nullptr), m_Size(0)
+			m_pRoot(nullptr), m_pHead(nullptr), m_Size(0)
 		{
 			m_pNil = new Node(K());
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
@@ -450,6 +450,7 @@ namespace FluxStd
 
 			++m_Size;
 			InsertFix(pNewNode);
+			m_pHead = MinNode();
 			return pNewNode;
 		}
 
@@ -738,6 +739,7 @@ namespace FluxStd
 	private:
 		Node* m_pRoot;
 		Node* m_pNil;
+		Node* m_pHead;
 		size_t m_Size;
 	};
 

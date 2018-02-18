@@ -62,5 +62,26 @@
 			<Item Name="[Value]" ExcludeView="simple">Pair.Value</Item>
 		</Expand>
 	</Type>
+	
+	<!--Map-->
+	<Type Name="FluxStd::Map&lt;*&gt;">
+		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
+		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<Expand>
+			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+			<LinkedListItems>
+				<Size>m_Size</Size>
+				<HeadPointer>m_pHead</HeadPointer>
+				<NextPointer>pNext</NextPointer>
+				<ValueNode>this</ValueNode>
+			</LinkedListItems>
+		</Expand>
+	</Type>
+	<Type Name="FluxStd::Map&lt;*&gt;::Node">
+		<Expand>
+			<Item Name="[Key]" ExcludeView="simple">Pair.Key</Item>
+			<Item Name="[Value]" ExcludeView="simple">Pair.Value</Item>
+		</Expand>
+	</Type>
 
 </AutoVisualizer>
