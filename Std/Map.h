@@ -5,7 +5,7 @@
 
 namespace FluxStd
 {
-	template<typename K, typename V>
+	template<typename K, typename V, typename KeyCompare = FluxStd::LessThan<K>>
 	class Map
 	{
 	private:
@@ -412,12 +412,13 @@ namespace FluxStd
 			if (m_pRoot == nullptr)
 				return nullptr;
 
+			KeyCompare compare;
 			Node* pNode = m_pRoot->pLeft;
 			while (pNode != m_pNil)
 			{
-				if (key < pNode->Pair.Key)
+				if (compare(key, pNode->Pair.Key))
 					pNode = pNode->pLeft;
-				else if (key > pNode->Pair.Key)
+				else if (compare(pNode->Pair.Key, key))
 					pNode = pNode->pRight;
 				else
 					return pNode;
@@ -433,12 +434,13 @@ namespace FluxStd
 			Node *pNewParent = m_pRoot;
 			Node *pNode = m_pRoot->pLeft;
 
-			while (pNode != m_pNil) 
+			KeyCompare compare;
+			while (pNode != m_pNil)
 			{
 				pNewParent = pNode;
-				if (key < pNode->Pair.Key)
+				if (compare(key, pNode->Pair.Key))
 					pNode = pNode->pLeft;
-				else if (pNode->Pair.Key < key)
+				else if (compare(pNode->Pair.Key, key))
 					pNode = pNode->pRight;
 				else 
 				{
@@ -451,7 +453,7 @@ namespace FluxStd
 			pNewNode->pRight = m_pNil;
 			pNewNode->pLeft = m_pNil;
 
-			if (pNewParent == m_pRoot || key < pNewParent->Pair.Key)
+			if (pNewParent == m_pRoot || compare(key, pNewParent->Pair.Key))
 				pNewParent->pLeft = pNewNode;
 			else 
 				pNewParent->pRight = pNewNode;
@@ -794,8 +796,8 @@ namespace FluxStd
 		size_t m_Size;
 	};
 
-	template<typename K, typename V>
-	void Swap(Map<K, V>& a, Map<K, V>& b)
+	template<typename K, typename V, typename KeyCompare>
+	void Swap(Map<K, V, KeyCompare>& a, Map<K, V, KeyCompare>& b)
 	{
 		a.Swap(b);
 	}

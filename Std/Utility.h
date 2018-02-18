@@ -56,6 +56,22 @@ namespace FluxStd
 		return static_cast<T&&>(t);
 	}
 
+	template<typename T>
+	struct LessThan
+	{
+		constexpr bool operator()(const T& a, const T& b) { return a < b; }
+	};
+	template<typename T>
+	struct GreaterThan
+	{
+		constexpr bool operator()(const T& a, const T& b) { return a > b; }
+	};
+	template<typename T>
+	struct EqualTo
+	{
+		constexpr bool operator()(const T& a, const T& b) { return a == b; }
+	};
+
 	template< class T> 
 	struct AddConst
 	{ 
