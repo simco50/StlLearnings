@@ -363,7 +363,7 @@ namespace FluxStd
 
 		Iterator Find(const K& key)
 		{
-			size_t hash = Hash(key);
+			const size_t hash = Hash(key);
 			Node* pNode = m_pTable[hash];
 			while (pNode)
 			{
@@ -376,7 +376,7 @@ namespace FluxStd
 
 		ConstIterator Find(const K& key) const
 		{
-			size_t hash = Hash(key);
+			const size_t hash = Hash(key);
 			Node* pNode = m_pTable[hash];
 			while (pNode)
 			{
@@ -477,7 +477,7 @@ namespace FluxStd
 		}
 
 		//Hash a key using the hash functor
-		size_t Hash(const K& key) const
+		inline size_t Hash(const K& key) const
 		{
 			return m_Hasher(key) % m_BucketCount;
 		}

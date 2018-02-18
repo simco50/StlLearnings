@@ -237,6 +237,40 @@ TEST_CASE("Map - Insert", "[HashMap]")
 		REQUIRE(map.Size() == 4);
 		REQUIRE(map.Find("Hello") != map.End());
 	}
+	SECTION("Empty - Empty Map")
+	{
+		using P = KeyValuePair<string, double>;
+		Map<string, double> map;
+		REQUIRE(map.Size() == 0);
+		Map<string, double> map2;
+		map.Insert(map2);
+		REQUIRE(map.Size() == 0);
+	}
+	SECTION("Empty - Non-empty Map")
+	{
+		using P = KeyValuePair<string, double>;
+		Map<string, double> map;
+		REQUIRE(map.Size() == 0);
+		Map<string, double> map2 = { P("Hello", 1.23), P("World", 2.46) };
+		map.Insert(map2);
+		REQUIRE(map.Size() == 2);
+		REQUIRE(map.Contains("Hello"));
+		REQUIRE(map.Contains("World"));
+	}
+	SECTION("Non-empty - Non-empty Map")
+	{
+		using P = KeyValuePair<string, double>;
+		Map<string, double> map = { P("Foo", 1.23), P("Bar", 2.46) };
+		REQUIRE(map.Size() == 2);
+		Map<string, double> map2 = { P("Hello", 1.23), P("World", 2.46) };
+		map.Insert(map2);
+		REQUIRE(map.Size() == 4);
+		REQUIRE(map.Contains("Foo"));
+		REQUIRE(map.Contains("Bar"));
+		REQUIRE(map.Contains("Hello"));
+		REQUIRE(map.Contains("World"));
+		map.Erase("Kut");
+	}
 }
 
 TEST_CASE("Map - Accessors", "[HashMap]")

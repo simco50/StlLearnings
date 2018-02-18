@@ -65,6 +65,17 @@ namespace FluxStd
 			pAllocator->pFree = pNode;
 		}
 
+		static size_t GetSize(const Block* pBlock)
+		{
+			size_t size = 0;
+			while (pBlock != nullptr)
+			{
+				size += pBlock->Capacity;
+				pBlock = pBlock->pNext;
+			}
+			return size;
+		}
+
 	private:
 		static Block* AllocateBlock(Block* pAllocator, size_t nodeSize, size_t capacity)
 		{

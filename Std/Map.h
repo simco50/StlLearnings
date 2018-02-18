@@ -1,6 +1,7 @@
 #pragma once
 #include "KeyValuePair.h"
 #include "Utility.h"
+#include "BlockAllocator.h"
 
 namespace FluxStd
 {
@@ -149,7 +150,8 @@ namespace FluxStd
 		Map() :
 			m_pRoot(nullptr), m_pHead(nullptr), m_Size(0)
 		{
-			m_pNil = new Node(K());
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node), 2);
+			m_pNil = ReserveNode();
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 		}
@@ -157,7 +159,8 @@ namespace FluxStd
 		Map(const std::initializer_list<KeyValuePair<K, V>>& list) :
 			m_pRoot(nullptr), m_Size(0)
 		{
-			m_pNil = new Node(K());
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node), list.size() + 2);
+			m_pNil = ReserveNode();
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 			for (const KeyValuePair<K, V>* pPair = list.begin(); pPair != list.end(); ++pPair)
@@ -169,7 +172,8 @@ namespace FluxStd
 		Map(const Map& other) :
 			m_pRoot(nullptr), m_Size(0)
 		{
-			m_pNil = new Node(K());
+			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 2);
+			m_pNil = ReserveNode();
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 			CopyFrom(other);
@@ -184,7 +188,7 @@ namespace FluxStd
 		{
 			if (m_pNil == nullptr)
 			{
-				m_pNil = new Node(K());
+				m_pNil = ReserveNode();
 				m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 				m_pNil->Color = BLACK;
 			}
@@ -196,15 +200,17 @@ namespace FluxStd
 		~Map()
 		{
 			Clear();
-			delete m_pNil;
-			m_pNil = nullptr;
+			FreeNode(m_pNil);
+			BlockAllocator::Uninitialize(m_pBlock);
 		}
 
 		void Swap(Map& other)
 		{
 			FluxStd::Swap(m_pRoot, other.m_pRoot);
+			FluxStd::Swap(m_pHead, other.m_pHead);
 			FluxStd::Swap(m_pNil, other.m_pNil);
 			FluxStd::Swap(m_Size, other.m_Size);
+			FluxStd::Swap(m_pBlock, other.m_pBlock);
 		}
 
 		void CopyFrom(const Map& other)
@@ -230,21 +236,27 @@ namespace FluxStd
 			return Find_Internal(key) != nullptr;
 		}
 
-		void Insert(const K& key, const V& value)
+		Iterator Insert(const K& key, const V& value)
 		{
-			Insert_Internal(key, value);
+			return Iterator(Insert_Internal(key, value));
 		}
 
-		void Insert(const KeyValuePair<K, V>& pair)
+		Iterator Insert(const KeyValuePair<K, V>& pair)
 		{
-			Insert_Internal(pair.Key, pair.Value);
+			return Iterator(Insert_Internal(pair.Key, pair.Value));
+		}
+
+		void Insert(const Map& other)
+		{
+			for (ConstIterator pIt = other.Begin(); pIt != other.End(); ++pIt)
+				Insert_Internal(pIt->Key, pIt->Value);
 		}
 
 		Iterator Erase(const K& key)
 		{
 			Node* pNode = Find_Internal(key);
 			if (pNode == nullptr)
-				return false;
+				return Iterator(nullptr);
 			Iterator it = Erase_Internal(pNode);
 			if (m_Size == 0 && m_pRoot)
 				DeleteRoot();
@@ -344,7 +356,8 @@ namespace FluxStd
 		ConstIterator end() const { return ConstIterator(nullptr); }
 
 	private:
-		Node* MinNode() const
+		//Get the node with the smallest key value
+		Node * MinNode() const
 		{
 			if (m_pRoot == nullptr)
 				return nullptr;
@@ -354,6 +367,7 @@ namespace FluxStd
 			return pNode;
 		}
 
+		//Get the node with the biggest key value
 		Node* MaxNode() const
 		{
 			if (m_pRoot == nullptr)
@@ -367,8 +381,8 @@ namespace FluxStd
 		inline void DestroyTree()
 		{
 			DestroyTreeHelper(m_pRoot->pLeft);
-			delete m_pRoot;
-			delete m_pNil;
+			FreeNode(m_pRoot);
+			FreeNode(m_pNil);
 		}
 
 		void DestroyTreeHelper(Node* pNode)
@@ -377,10 +391,11 @@ namespace FluxStd
 			{
 				DestroyTreeHelper(pNode->pLeft);
 				DestroyTreeHelper(pNode->pRight);
-				delete pNode;
+				FreeNode(pNode);
 			}
 		}
 
+		//Get the depth of the tree
 		void GetDepth_Internal(Node *pNode, size_t &maxDepth, size_t depth) const 
 		{
 			if (pNode == m_pNil)
@@ -431,7 +446,7 @@ namespace FluxStd
 					return pNode;
 				}
 			}
-			Node *pNewNode = new Node(key, value);
+			Node *pNewNode = ReserveNode(key, value);
 			pNewNode->pParent = pNewParent;
 			pNewNode->pRight = m_pNil;
 			pNewNode->pLeft = m_pNil;
@@ -453,7 +468,8 @@ namespace FluxStd
 			m_pHead = MinNode();
 			return pNewNode;
 		}
-
+		
+		//Rebalance the tree after insertion
 		void InsertFix(Node *pNewNode)
 		{
 			Node *pNode = pNewNode;
@@ -561,11 +577,12 @@ namespace FluxStd
 			if (pNode->pPrev)
 				pNode->pPrev->pNext = pNode->pNext;
 
-			delete pNode;
+			FreeNode(pNode);
 			m_Size--;
 			return Iterator(pNext);
 		}
 
+		//Rebalance the tree after erasing
 		void EraseFix(Node *pNode)
 		{
 			Node *pRoot = m_pRoot->pLeft;
@@ -643,7 +660,7 @@ namespace FluxStd
 	private:
 		inline void CreateRoot()
 		{
-			m_pRoot = new Node(K());
+			m_pRoot = ReserveNode();
 			m_pRoot->pParent = m_pRoot->pLeft = m_pRoot->pRight = m_pNil;
 			m_pRoot->Color = BLACK;
 		}
@@ -651,10 +668,7 @@ namespace FluxStd
 		inline void DeleteRoot()
 		{
 			if (m_pRoot)
-			{
-				delete m_pRoot;
-				m_pRoot = nullptr;
-			}
+				FreeNode(m_pRoot);
 		}
 
 		inline void RotateLeft(Node* pNode)
@@ -688,6 +702,7 @@ namespace FluxStd
 			pNode->pParent = pLeft;
 		}
 
+		//The node with the closest bigger key
 		inline Node* Successor(Node *pNode) const
 		{
 			Node *pTemp = pNode;
@@ -709,6 +724,7 @@ namespace FluxStd
 			}
 		}
 
+		//The node with the closest smaller key
 		inline Node* Predecessor(Node *pNode) const
 		{
 			Node *pTemp = pNode;
@@ -731,15 +747,50 @@ namespace FluxStd
 			}
 		}
 
-		inline void SetColor(Node* pNode, int color) 
+		inline void SetColor(Node* pNode, int color)
 		{
 			pNode->Color = color;
 		}
 
+		///////////Allocations///////////
+
+		inline Node* ReserveNode()
+		{
+			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
+			new(pNode) Node(K());
+			return pNode;
+		}
+
+		inline Node* ReserveNode(const K& key)
+		{
+			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
+			new(pNode) Node(key);
+			return pNode;
+		}
+
+		inline Node* ReserveNode(const K& key, const V& value)
+		{
+			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
+			new(pNode) Node(key, value);
+			return pNode;
+		}
+
+		inline void FreeNode(Node*& pNode)
+		{
+			(pNode)->~Node();
+			BlockAllocator::Free(m_pBlock, pNode);
+			pNode = nullptr;
+		}
+
 	private:
+		//The root of the tree, the left node of the root is the root of the actual tree
 		Node* m_pRoot;
+		//Null value so we don't have to add extra cases
 		Node* m_pNil;
+		//The node with the smallest key
 		Node* m_pHead;
+		//The allocator
+		BlockAllocator::Block* m_pBlock;
 		size_t m_Size;
 	};
 
