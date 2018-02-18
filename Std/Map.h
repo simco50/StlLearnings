@@ -8,6 +8,12 @@ namespace FluxStd
 	class Map
 	{
 	private:
+		enum Color
+		{
+			RED,
+			BLACK,
+		};
+
 		struct Node
 		{
 			Node* pParent = nullptr;
@@ -15,7 +21,7 @@ namespace FluxStd
 			Node* pRight = nullptr;
 			Node* pNext = nullptr;
 			Node* pPrev = nullptr;
-			bool Red = true;
+			int Color = RED;
 			KeyValuePair<K, V> Pair;
 
 			Node(const K& key) :
@@ -28,80 +34,17 @@ namespace FluxStd
 		};
 
 	public:
-		struct Iterator
-		{
-			Iterator(Node* pNode) :
-				pNode(pNode)
-			{}
-
-			Iterator& operator++()
-			{
-				if (pNode)
-					pNode = pNode->pNext;
-				return *this;
-			}
-
-			Iterator& operator--()
-			{
-				if (pNode)
-					pNode = pNode->pPrev;
-				return *this;
-			}
-
-			Iterator operator++(int)
-			{
-				Iterator it(pNode);
-				if (pNode)
-					pNode = pNode->pNext;
-				return it;
-			}
-
-			Iterator operator--(int)
-			{
-				Iterator it(pNode);
-				if (pNode)
-					pNode = pNode->pPrev;
-				return it;
-			}
-
-			bool operator!=(const Iterator& other) const { return pNode != other.pNode; }
-			bool operator==(const Iterator& other) const { return pNode == other.pNode; }
-
-			KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
-			KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
-
-			Node* pNode;
-		};
-
-
 		Map() :
 			m_pRoot(nullptr), m_Size(0)
-		{}
+		{
+			m_pNil = new Node(K());
+			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
+			m_pNil->Color = BLACK;
+		}
 
 		~Map()
 		{
-			DestroyTree(m_pRoot);
-		}
-
-		Map(const Map& other) :
-			m_Size(other.m_Size), m_pRoot(nullptr)
-		{
-			DeepCopy(other.m_pRoot, m_pRoot);
-		}
-
-		Map& operator=(const Map& other)
-		{
-			DestroyTree(m_pRoot);
-			m_Size = other.m_Size;
-			DeepCopy(other.m_pRoot, m_pRoot);
-			return *this;
-		}
-
-		Map(Map&& other) :
-			m_pRoot(other.m_pRoot), m_Size(other.m_Size)
-		{
-			other.m_pRoot = nullptr;
-			other.m_Size = 0;
+			DestroyTree();
 		}
 
 		template<typename FunctorType>
@@ -110,97 +53,90 @@ namespace FluxStd
 			Iterate<FunctorType>(m_pRoot, functor);
 		}
 
-		void Clear() const 
+		void Clear() 
 		{ 
-			DestroyTree(m_pRoot);
+			DestroyTreeHelper(m_pRoot->pLeft);
+			m_pRoot->pLeft = m_pNil;
 			m_Size = 0;
+			DeleteRoot();
 		}
 
 		size_t Size() const { return m_Size; }
-		bool Contains(const K& key) const { return Get(key, m_pRoot) != nullptr; }
 		bool IsEmpty() const { return m_Size == 0; }
 		static constexpr size_t MaxSize() { return ~(size_t)0; }
 
-		KeyValuePair<K, V>* Find(const K& key) 
-		{ 
-			Node* pNode = Get(key, m_pRoot); 
-			if (pNode) 
-				return &pNode->Pair; 
-			return nullptr; 
+		bool Contains(const K& key) const
+		{
+			return Find_Internal(key) != nullptr;
 		}
 
 		void Insert(const K& key, const V& value)
 		{
+			if (m_pRoot == nullptr)
+				CreateRoot();
 			Insert_Internal(key, value);
 		}
 
-		Iterator begin() { return Iterator(MinNode()); }
-		Iterator end() { return Iterator(MaxNode()->pNext); }
+		bool Erase(const K& key)
+		{
+			if (m_pRoot == nullptr)
+				return false;
+			Node* pNode = Find_Internal(key);
+			if (pNode == nullptr)
+				return false;
+			Erase_Internal(pNode);
+			if (m_Size == 0 && m_pRoot)
+				DeleteRoot();
+			return true;
+		}
+
+		const V* Find(const K& key) const
+		{
+			Node* pNode = Find_Internal(key);
+			pNode ? pNode->Pair.Key : nullptr;
+		}
+
+		V& operator[](const K& key)
+		{
+			if (m_pRoot == nullptr)
+				CreateRoot();
+			Node* pNode = Find_Internal(key);
+			if (pNode == nullptr)
+				pNode = Insert_Internal(key, V());
+			return pNode->Pair.Value;
+		}
+
+		const V& operator[](const K& key) const
+		{
+			assert(m_pRoot);
+			const Node* pNode = Find_Internal(key);
+			assert(pNode);
+			return pNode->Pair.Value;
+		}
 
 	private:
 
-		Node * Successor(Node* pNode)
+		void DestroyTree()
 		{
-			if (pNode == nullptr)
-				return nullptr;
-			if (pNode->pRight)
-			{
-				pNode = pNode->pRight;
-				while (pNode->pLeft != nullptr)
-					pNode = pNode->pLeft;
-				return pNode;
-			}
-			else
-			{
-				while (pNode->pParent && pNode == pNode->pParent->pRight)
-					pNode = pNode->pParent;
-				return pNode->pParent;
-			}
+			DestroyTreeHelper(m_pRoot->pLeft);
+			delete m_pRoot;
+			delete m_pNil;
 		}
 
-		Node* Predecessor(Node* pNode)
+		void DestroyTreeHelper(Node* pNode)
 		{
-			if (pNode == nullptr)
-				return nullptr;
-			if (pNode->pLeft)
+			if (pNode != m_pNil)
 			{
-				pNode = pNode->pLeft;
-				while (pNode->pRight != nullptr)
-					pNode = pNode->pRight;
-				return pNode;
-			}
-			else
-			{
-				while (pNode->pParent && pNode == pNode->pParent->pLeft)
-					pNode = pNode->pParent;
-				return pNode->pParent;
-			}
-		}
-
-		void DeepCopy(const Node* pSource, Node*& pDestination)
-		{
-			if (pSource == nullptr)
-				return;
-			pDestination = new Node(*pSource);
-			DeepCopy(pSource->pLeft, pDestination->pLeft);
-			DeepCopy(pSource->pRight, pDestination->pRight);
-		}
-
-		void DestroyTree(Node*& pNode)
-		{
-			if (pNode)
-			{
-				DestroyTree(pNode->pLeft);
-				DestroyTree(pNode->pRight);
+				DestroyTreeHelper(pNode->pLeft);
+				DestroyTreeHelper(pNode->pRight);
 				delete pNode;
-				pNode = nullptr;
 			}
 		}
 
-		//Searches the node for a key
-		Node* Get(const K& key, Node* pNode) const
+		Node* Find_Internal(const K& key) const
 		{
-			while (pNode != nullptr)
+			Node* pNode = m_pRoot->pLeft;
+			while (pNode != m_pNil)
 			{
 				if (key < pNode->Pair.Key)
 					pNode = pNode->pLeft;
@@ -212,139 +148,230 @@ namespace FluxStd
 			return nullptr;
 		}
 
-		void FixViolation(Node*& pNode)
+		Node* Insert_Internal(const K& key, const V& value) 
 		{
-			Node* pParent = nullptr;
-			Node* pGrandParent = nullptr;
+			Node *pNewParent = m_pRoot;
+			Node *pNode = m_pRoot->pLeft;
 
-			while (pNode != m_pRoot && pNode->Red && IsRed(pNode->pParent))
-			{
-				pParent = pNode->pParent;
-				pGrandParent = pParent->pParent;
-				if (pGrandParent == nullptr)
-					break;
-
-				//Case A
-				if (pParent == pGrandParent->pLeft)
-				{
-					//Case 1
-					Node* pUncle = pGrandParent->pRight;
-					if (pUncle && pUncle->Red)
-					{
-						pGrandParent->Red = true;
-						pParent->Red = false;
-						pGrandParent->pRight->Red = false;
-						pNode = pGrandParent;
-						pParent = pNode->pParent;
-					}
-					else
-					{
-						//Case 2
-						if (pNode == pParent->pRight)
-						{
-							RotateLeft(pParent);
-							pNode = pParent;
-							pParent = pNode->pParent;
-						}
-						//Case 3
-						pParent->Red = false;
-						pGrandParent->Red = true;
-						RotateRight(pGrandParent);
-					}
-				}
-				//Case B
-				else
-				{
-					Node* pUncle = pGrandParent->pLeft;
-					//Case 1
-					if (pUncle && pUncle->Red)
-					{
-						pParent->Red = false;
-						pUncle->Red = false;
-						pGrandParent->Red = true;
-						pNode = pGrandParent;
-						pParent = pNode->pParent;
-					}
-					else
-					{
-						//Case 2
-						if (pNode == pParent->pLeft)
-						{
-							RotateRight(pParent);
-							pNode = pParent;
-							pParent = pNode->pParent;
-						}
-						pParent->Red = false;
-						pGrandParent->Red = true;
-						RotateLeft(pGrandParent);
-					}
-				}
-			}
-			m_pRoot->Red = false;
-		}
-
-		Node* Insert_Internal(const K& key, const V& value)
-		{
-			if (m_pRoot == nullptr)
-			{
-				m_pRoot = new Node(key, value);
-				return m_pRoot;
-			}
-
-			Node* pNewParent = m_pRoot;
-			Node* pNode = m_pRoot;
-
-			while (pNode != nullptr)
+			while (pNode != m_pNil) 
 			{
 				pNewParent = pNode;
 				if (key < pNode->Pair.Key)
 					pNode = pNode->pLeft;
 				else if (pNode->Pair.Key < key)
 					pNode = pNode->pRight;
-				else
+				else 
 				{
 					pNode->Pair.Value = value;
 					return pNode;
 				}
 			}
-			Node* pNewNode = new Node(key, value);
+			Node *pNewNode = new Node(key, value);
 			pNewNode->pParent = pNewParent;
-			if (key < pNewParent->Pair.Key)
+			pNewNode->pRight = m_pNil;
+			pNewNode->pLeft = m_pNil;
+
+			if (pNewParent == m_pRoot || key < pNewParent->Pair.Key)
 				pNewParent->pLeft = pNewNode;
-			else
+			else 
 				pNewParent->pRight = pNewNode;
 
 			pNewNode->pNext = Successor(pNewNode);
 			pNewNode->pPrev = Predecessor(pNewNode);
-
 			if (pNewNode->pNext)
 				pNewNode->pNext->pPrev = pNewNode;
 			if (pNewNode->pPrev)
 				pNewNode->pPrev->pNext = pNewNode;
 
 			++m_Size;
-			FixViolation(pNewNode);
+			InsertFix(pNewNode);
 			return pNewNode;
 		}
 
-		/*void Erase(const K& key)
+		void InsertFix(Node *pNewNode)
 		{
-			Node* pNode = EraseNode(m_pRoot, key);
+			Node *pNode = pNewNode;
+			Node *pParent = pNode->pParent;
+			Node *pGrandParent;
+
+			while (pParent->Color == RED)
+			{
+				pGrandParent = pParent->pParent;
+
+				if (pParent == pGrandParent->pLeft)
+				{
+					if (pGrandParent->pRight->Color == RED)
+					{
+						SetColor(pParent, BLACK);
+						SetColor(pGrandParent->pRight, BLACK);
+						SetColor(pGrandParent, RED);
+						pNode = pGrandParent;
+						pParent = pNode->pParent;
+					}
+					else
+					{
+						if (pNode == pParent->pRight)
+						{
+							RotateLeft(pParent);
+							pNode = pParent;
+							pParent = pNode->pParent;
+						}
+						SetColor(pParent, BLACK);
+						SetColor(pGrandParent, RED);
+						RotateRight(pGrandParent);
+					}
+				}
+				else
+				{
+					if (pGrandParent->pLeft->Color == RED)
+					{
+						SetColor(pParent, BLACK);
+						SetColor(pGrandParent->pLeft, BLACK);
+						SetColor(pGrandParent, RED);
+						pNode = pGrandParent;
+						pParent = pNode->pParent;
+					}
+					else
+					{
+						if (pNode == pParent->pLeft)
+						{
+							RotateRight(pParent);
+							pNode = pParent;
+							pParent = pNode->pParent;
+						}
+						SetColor(pParent, BLACK);
+						SetColor(pGrandParent, RED);
+						RotateLeft(pGrandParent);
+					}
+				}
+			}
+			SetColor(m_pRoot->pLeft, BLACK);
 		}
 
-		Node* EraseNode(Node* pRoot, const K& key)
+		void Erase_Internal(Node *pNode)
 		{
-			if (pRoot == nullptr)
-				return nullptr;
-			if (key < pRoot->Pair.Key)
-				pRoot = EraseNode(pRoot->pLeft, key);
-			else if (key > pRoot->Pair.Key)
-				pRoot = EraseNode(pRoot->pRight, key);
-			else if (pRoot->pLeft == nullptr || pRoot->pRight == nullptr)
+			Node *pRp = ((pNode->pLeft == m_pNil) || (pNode->pRight == m_pNil)) ? pNode : pNode->pNext;
+			Node *pTemp = (pRp->pLeft == m_pNil) ? pRp->pRight : pRp->pLeft;
+
+			Node *pSibling;
+			if (pRp == pRp->pParent->pLeft)
 			{
+				pRp->pParent->pLeft = pTemp;
+				pSibling = pRp->pParent->pRight;
 			}
-			return pRoot;
-		}*/
+			else
+			{
+				pRp->pParent->pRight = pTemp;
+				pSibling = pRp->pParent->pLeft;
+			}
+
+			if (pTemp->Color == RED)
+			{
+				pTemp->pParent = pRp->pParent;
+				SetColor(pTemp, BLACK);
+			}
+			else if (pRp->Color == BLACK && pRp->pParent != m_pRoot)
+				EraseFix(pSibling);
+
+			if (pRp != pNode)
+			{
+				pRp->pLeft = pNode->pLeft;
+				pRp->pRight = pNode->pRight;
+				pRp->pParent = pNode->pParent;
+				pRp->Color = pNode->Color;
+				if (pNode->pLeft != m_pNil)
+					pNode->pLeft->pParent = pRp;
+				if (pNode->pRight != m_pNil)
+					pNode->pRight->pParent = pRp;
+
+				if (pNode == pNode->pParent->pLeft)
+					pNode->pParent->pLeft = pRp;
+				else
+					pNode->pParent->pRight = pRp;
+			}
+			if (pNode->pNext)
+				pNode->pNext->pPrev = pNode->pPrev;
+			if (pNode->pPrev)
+				pNode->pPrev->pNext = pNode->pNext;
+
+			delete pNode;
+			m_Size--;
+		}
+
+		void EraseFix(Node *pNode)
+		{
+			Node *pRoot = m_pRoot->pLeft;
+			Node *pTemp = m_pNil;
+			Node *pSibling = pNode;
+			Node *pParent = pSibling->pParent;
+
+			while (pTemp != pRoot)
+			{
+				if (pSibling->Color == RED)
+				{
+					SetColor(pSibling, BLACK);
+					SetColor(pParent, RED);
+					if (pSibling == pParent->pRight)
+					{
+						pSibling = pSibling->pLeft;
+						RotateLeft(pParent);
+					}
+					else
+					{
+						pSibling = pSibling->pRight;
+						RotateRight(pParent);
+					}
+				}
+				if ((pSibling->pLeft->Color == BLACK) && (pSibling->pRight->Color == BLACK))
+				{
+					SetColor(pSibling, RED);
+					if (pParent->Color == RED)
+					{
+						SetColor(pParent, BLACK);
+						break;
+					}
+					else
+					{
+						pTemp = pParent;
+						pParent = pTemp->pParent;
+						pSibling = (pTemp == pParent->pLeft) ? pParent->pRight : pParent->pLeft;
+					}
+				}
+				else
+				{
+					if (pSibling == pParent->pRight)
+					{
+						if (pSibling->pRight->Color == BLACK)
+						{
+							SetColor(pSibling->pLeft, BLACK);
+							SetColor(pSibling, RED);
+							RotateRight(pSibling);
+							pSibling = pSibling->pParent;
+						}
+						SetColor(pSibling, pParent->Color);
+						SetColor(pParent, BLACK);
+						SetColor(pSibling->pRight, BLACK);
+						RotateLeft(pParent);
+						break;
+					}
+					else
+					{
+						if (pSibling->pLeft->Color == BLACK)
+						{
+							SetColor(pSibling->pRight, BLACK);
+							SetColor(pSibling, RED);
+							RotateLeft(pSibling);
+							pSibling = pSibling->pParent;
+						}
+						SetColor(pSibling, pParent->Color);
+						SetColor(pParent, BLACK);
+						SetColor(pSibling->pLeft, BLACK);
+						RotateRight(pParent);
+						break;
+					}
+				}
+			}
+		}
 
 		template<typename FunctorType>
 		void Iterate(Node* pNode, FunctorType functor)
@@ -357,66 +384,104 @@ namespace FluxStd
 		}
 
 	private:
-		Node * MinNode()
+		void CreateRoot()
 		{
-			if (!m_pRoot)
-				return nullptr;
-			Node* pMin = m_pRoot;
-			while (pMin->pLeft)
-				pMin = pMin->pLeft;
-			return pMin;
-		}
-		Node * MaxNode()
-		{
-			if (!m_pRoot)
-				return nullptr;
-			Node* pMax = m_pRoot;
-			while (pMax->pRight)
-				pMax = pMax->pRight;
-			return pMax;
+			m_pRoot = new Node(K());
+			m_pRoot->pParent = m_pRoot->pLeft = m_pRoot->pRight = m_pNil;
+			m_pRoot->Color = BLACK;
 		}
 
-		inline bool IsRed(Node* pNode) 
-		{ 
-			return pNode != nullptr && pNode->Red; 
+		void DeleteRoot()
+		{
+			if (m_pRoot)
+			{
+				delete m_pRoot;
+				m_pRoot = nullptr;
+			}
 		}
 
-		void RotateLeft(Node *&pNode)
+		void RotateLeft(Node* pNode)
 		{
-			Node *pRight = pNode->pRight;
+			Node* pRight = pNode->pRight;
 			pNode->pRight = pRight->pLeft;
-			if (pNode->pRight != nullptr)
-				pNode->pRight->pParent = pNode;
+			if (pRight->pLeft != m_pNil)
+				pRight->pLeft->pParent = pNode;
 			pRight->pParent = pNode->pParent;
-			if (pNode->pParent == nullptr)
-				m_pRoot = pRight;
-			else if (pNode == pNode->pParent->pLeft)
+			if (pNode == pNode->pParent->pLeft)
 				pNode->pParent->pLeft = pRight;
 			else
 				pNode->pParent->pRight = pRight;
+
 			pRight->pLeft = pNode;
 			pNode->pParent = pRight;
 		}
 
-		void RotateRight(Node *&pNode)
+		void RotateRight(Node* pNode)
 		{
-			Node *pt_pLeft = pNode->pLeft;
-			pNode->pLeft = pt_pLeft->pRight;
-			if (pNode->pLeft != nullptr)
-				pNode->pLeft->pParent = pNode;
-			pt_pLeft->pParent = pNode->pParent;
-			if (pNode->pParent == nullptr)
-				m_pRoot = pt_pLeft;
-			else if (pNode == pNode->pParent->pLeft)
-				pNode->pParent->pLeft = pt_pLeft;
+			Node* pLeft = pNode->pLeft;
+			pNode->pLeft = pLeft->pRight;
+			if (pLeft->pRight != m_pNil)
+				pLeft->pRight->pParent = pNode;
+			pLeft->pParent = pNode->pParent;
+			if (pNode == pNode->pParent->pRight)
+				pNode->pParent->pRight = pLeft;
 			else
-				pNode->pParent->pRight = pt_pLeft;
-			pt_pLeft->pRight = pNode;
-			pNode->pParent = pt_pLeft;
+				pNode->pParent->pLeft = pLeft;
+			pLeft->pRight = pNode;
+			pNode->pParent = pLeft;
+		}
+
+		Node* Successor(Node *pNode) const 
+		{
+			Node *pTemp = pNode;
+			if (pTemp->pRight != m_pNil) 
+			{
+				pTemp = pTemp->pRight;
+				while (pTemp->pLeft != m_pNil)
+					pTemp = pTemp->pLeft;
+				return pTemp;
+			}
+			else
+			{
+				while (pTemp == pTemp->pParent->pRight) 
+					pTemp = pTemp->pParent;
+
+				if (pTemp->pParent == m_pRoot)
+					return nullptr;
+				return pTemp->pParent;
+			}
+		}
+
+		Node* Predecessor(Node *pNode) const
+		{
+			Node *pTemp = pNode;
+
+			if (pTemp->pLeft != m_pNil)
+			{
+				pTemp = pTemp->pLeft;
+				while (pTemp->pRight != m_pNil)
+					pTemp = pTemp->pRight;
+				return pTemp;
+			}
+			else
+			{
+				while (pTemp == pTemp->pParent->pLeft)
+					pTemp = pTemp->pParent;
+
+				if (pTemp == m_pRoot)
+					return nullptr;
+				return pTemp->pParent;
+			}
+		}
+
+		inline void SetColor(Node* pNode, int color) 
+		{
+			pNode->Color = color;
 		}
 
 	private:
 		Node* m_pRoot;
+		Node* m_pNil;
 		size_t m_Size;
 	};
 }
