@@ -13,6 +13,8 @@ namespace FluxStd
 			Node* pParent = nullptr;
 			Node* pLeft = nullptr;
 			Node* pRight = nullptr;
+			Node* pNext = nullptr;
+			Node* pPrev = nullptr;
 			bool Red = true;
 			KeyValuePair<K, V> Pair;
 
@@ -26,6 +28,52 @@ namespace FluxStd
 		};
 
 	public:
+		struct Iterator
+		{
+			Iterator(Node* pNode) :
+				pNode(pNode)
+			{}
+
+			Iterator& operator++()
+			{
+				if (pNode)
+					pNode = pNode->pNext;
+				return *this;
+			}
+
+			Iterator& operator--()
+			{
+				if (pNode)
+					pNode = pNode->pPrev;
+				return *this;
+			}
+
+			Iterator operator++(int)
+			{
+				Iterator it(pNode);
+				if (pNode)
+					pNode = pNode->pNext;
+				return it;
+			}
+
+			Iterator operator--(int)
+			{
+				Iterator it(pNode);
+				if (pNode)
+					pNode = pNode->pPrev;
+				return it;
+			}
+
+			bool operator!=(const Iterator& other) const { return pNode != other.pNode; }
+			bool operator==(const Iterator& other) const { return pNode == other.pNode; }
+
+			KeyValuePair<K, V>& operator*() const { return pNode->Pair; }
+			KeyValuePair<K, V>* operator->() const { return &pNode->Pair; }
+
+			Node* pNode;
+		};
+
+
 		Map() :
 			m_pRoot(nullptr), m_Size(0)
 		{}
@@ -83,10 +131,51 @@ namespace FluxStd
 
 		void Insert(const K& key, const V& value)
 		{
-			Insert(key, m_pRoot)->Pair.Value = value;
+			Insert_Internal(key, value);
 		}
 
+		Iterator begin() { return Iterator(MinNode()); }
+		Iterator end() { return Iterator(MaxNode()->pNext); }
+
 	private:
+
+		Node * Successor(Node* pNode)
+		{
+			if (pNode == nullptr)
+				return nullptr;
+			if (pNode->pRight)
+			{
+				pNode = pNode->pRight;
+				while (pNode->pLeft != nullptr)
+					pNode = pNode->pLeft;
+				return pNode;
+			}
+			else
+			{
+				while (pNode->pParent && pNode == pNode->pParent->pRight)
+					pNode = pNode->pParent;
+				return pNode->pParent;
+			}
+		}
+
+		Node* Predecessor(Node* pNode)
+		{
+			if (pNode == nullptr)
+				return nullptr;
+			if (pNode->pLeft)
+			{
+				pNode = pNode->pLeft;
+				while (pNode->pRight != nullptr)
+					pNode = pNode->pRight;
+				return pNode;
+			}
+			else
+			{
+				while (pNode->pParent && pNode == pNode->pParent->pLeft)
+					pNode = pNode->pParent;
+				return pNode->pParent;
+			}
+		}
 
 		void DeepCopy(const Node* pSource, Node*& pDestination)
 		{
@@ -123,25 +212,17 @@ namespace FluxStd
 			return nullptr;
 		}
 
-		//Inserts node or returns an already existing one
-		Node* Insert(const K& key, Node*& pCurrent)
-		{
-			//Insert BST
-			Node* pNewNode = new Node(key);
-			m_pRoot = BSTInsert(pCurrent, pNewNode);
-			FixViolation(m_pRoot, pNewNode);
-			return pNewNode;
-		}
-
-		void FixViolation(Node*& pRoot, Node*& pNode)
+		void FixViolation(Node*& pNode)
 		{
 			Node* pParent = nullptr;
 			Node* pGrandParent = nullptr;
 
-			while (pNode != pRoot && pNode->Red && IsRed(pNode->pParent))
+			while (pNode != m_pRoot && pNode->Red && IsRed(pNode->pParent))
 			{
 				pParent = pNode->pParent;
 				pGrandParent = pParent->pParent;
+				if (pGrandParent == nullptr)
+					break;
 
 				//Case A
 				if (pParent == pGrandParent->pLeft)
@@ -152,22 +233,23 @@ namespace FluxStd
 					{
 						pGrandParent->Red = true;
 						pParent->Red = false;
-						pUncle->Red = false;
+						pGrandParent->pRight->Red = false;
 						pNode = pGrandParent;
+						pParent = pNode->pParent;
 					}
 					else
 					{
 						//Case 2
 						if (pNode == pParent->pRight)
 						{
-							RotateLeft(pRoot, pParent);
+							RotateLeft(pParent);
 							pNode = pParent;
 							pParent = pNode->pParent;
 						}
 						//Case 3
-						RotateRight(pRoot, pGrandParent);
-						Swap(pParent->Red, pGrandParent->Red);
-						pNode = pParent;
+						pParent->Red = false;
+						pGrandParent->Red = true;
+						RotateRight(pGrandParent);
 					}
 				}
 				//Case B
@@ -177,53 +259,75 @@ namespace FluxStd
 					//Case 1
 					if (pUncle && pUncle->Red)
 					{
-						pGrandParent->Red = true;
 						pParent->Red = false;
 						pUncle->Red = false;
+						pGrandParent->Red = true;
 						pNode = pGrandParent;
+						pParent = pNode->pParent;
 					}
 					else
 					{
 						//Case 2
 						if (pNode == pParent->pLeft)
 						{
-							RotateRight(pRoot, pParent);
+							RotateRight(pParent);
 							pNode = pParent;
 							pParent = pNode->pParent;
 						}
-
-						RotateLeft(pRoot, pGrandParent);
-						Swap(pParent->Red, pGrandParent->Red);
-						pNode = pParent;
+						pParent->Red = false;
+						pGrandParent->Red = true;
+						RotateLeft(pGrandParent);
 					}
 				}
 			}
-			pRoot->Red = false;
+			m_pRoot->Red = false;
 		}
 
-		Node* BSTInsert(Node* pRoot, Node* pPtr)
+		Node* Insert_Internal(const K& key, const V& value)
 		{
-			/* If the tree is empty, return a new node */
-			if (pRoot == nullptr)
-				return pPtr;
-
-			/* Otherwise, recur down the tree */
-			if (pPtr->Pair.Key < pRoot->Pair.Key)
+			if (m_pRoot == nullptr)
 			{
-				pRoot->pLeft = BSTInsert(pRoot->pLeft, pPtr);
-				pRoot->pLeft->pParent = pRoot;
-			}
-			else if (pPtr->Pair.Key > pRoot->Pair.Key)
-			{
-				pRoot->pRight = BSTInsert(pRoot->pRight, pPtr);
-				pRoot->pRight->pParent = pRoot;
+				m_pRoot = new Node(key, value);
+				return m_pRoot;
 			}
 
-			/* return the (unchanged) node pointer */
-			return pRoot;
+			Node* pNewParent = m_pRoot;
+			Node* pNode = m_pRoot;
+
+			while (pNode != nullptr)
+			{
+				pNewParent = pNode;
+				if (key < pNode->Pair.Key)
+					pNode = pNode->pLeft;
+				else if (pNode->Pair.Key < key)
+					pNode = pNode->pRight;
+				else
+				{
+					pNode->Pair.Value = value;
+					return pNode;
+				}
+			}
+			Node* pNewNode = new Node(key, value);
+			pNewNode->pParent = pNewParent;
+			if (key < pNewParent->Pair.Key)
+				pNewParent->pLeft = pNewNode;
+			else
+				pNewParent->pRight = pNewNode;
+
+			pNewNode->pNext = Successor(pNewNode);
+			pNewNode->pPrev = Predecessor(pNewNode);
+
+			if (pNewNode->pNext)
+				pNewNode->pNext->pPrev = pNewNode;
+			if (pNewNode->pPrev)
+				pNewNode->pPrev->pNext = pNewNode;
+
+			++m_Size;
+			FixViolation(pNewNode);
+			return pNewNode;
 		}
 
-		void Erase(const K& key)
+		/*void Erase(const K& key)
 		{
 			Node* pNode = EraseNode(m_pRoot, key);
 		}
@@ -233,15 +337,14 @@ namespace FluxStd
 			if (pRoot == nullptr)
 				return nullptr;
 			if (key < pRoot->Pair.Key)
-				return EraseNode(pRoot->pLeft, key);
-			if (key > pRoot->Pair.Key)
-				return EraseNode(pRoot->pRight, key);
-			if (pRoot->pLeft == nullptr || pRoot->pRight == nullptr)
-				return pRoot;
-			Node* pTemp = MinValueNode(pRoot->pRight);
-			pRoot->Pair->Key = pTemp->Pair.Key;
-			return EraseNode(pRoot->pRight, pTemp->Pair.Key);
-		}
+				pRoot = EraseNode(pRoot->pLeft, key);
+			else if (key > pRoot->Pair.Key)
+				pRoot = EraseNode(pRoot->pRight, key);
+			else if (pRoot->pLeft == nullptr || pRoot->pRight == nullptr)
+			{
+			}
+			return pRoot;
+		}*/
 
 		template<typename FunctorType>
 		void Iterate(Node* pNode, FunctorType functor)
@@ -254,12 +357,31 @@ namespace FluxStd
 		}
 
 	private:
+		Node * MinNode()
+		{
+			if (!m_pRoot)
+				return nullptr;
+			Node* pMin = m_pRoot;
+			while (pMin->pLeft)
+				pMin = pMin->pLeft;
+			return pMin;
+		}
+		Node * MaxNode()
+		{
+			if (!m_pRoot)
+				return nullptr;
+			Node* pMax = m_pRoot;
+			while (pMax->pRight)
+				pMax = pMax->pRight;
+			return pMax;
+		}
+
 		inline bool IsRed(Node* pNode) 
 		{ 
 			return pNode != nullptr && pNode->Red; 
 		}
 
-		void RotateLeft(Node *&pRoot, Node *&pNode)
+		void RotateLeft(Node *&pNode)
 		{
 			Node *pRight = pNode->pRight;
 			pNode->pRight = pRight->pLeft;
@@ -267,7 +389,7 @@ namespace FluxStd
 				pNode->pRight->pParent = pNode;
 			pRight->pParent = pNode->pParent;
 			if (pNode->pParent == nullptr)
-				pRoot = pRight;
+				m_pRoot = pRight;
 			else if (pNode == pNode->pParent->pLeft)
 				pNode->pParent->pLeft = pRight;
 			else
@@ -276,7 +398,7 @@ namespace FluxStd
 			pNode->pParent = pRight;
 		}
 
-		void RotateRight(Node *&pRoot, Node *&pNode)
+		void RotateRight(Node *&pNode)
 		{
 			Node *pt_pLeft = pNode->pLeft;
 			pNode->pLeft = pt_pLeft->pRight;
@@ -284,7 +406,7 @@ namespace FluxStd
 				pNode->pLeft->pParent = pNode;
 			pt_pLeft->pParent = pNode->pParent;
 			if (pNode->pParent == nullptr)
-				pRoot = pt_pLeft;
+				m_pRoot = pt_pLeft;
 			else if (pNode == pNode->pParent->pLeft)
 				pNode->pParent->pLeft = pt_pLeft;
 			else
