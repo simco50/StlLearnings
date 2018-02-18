@@ -66,7 +66,7 @@ namespace FluxStd
 	};
 
 	template<typename T, size_t size>
-	void Swap(Array<T, size>& a, Array<T, size>& b)
+	inline void Swap(Array<T, size>& a, Array<T, size>& b)
 	{
 		a.Swap(b);
 	}

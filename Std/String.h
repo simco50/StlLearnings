@@ -4,6 +4,7 @@
 #include "Iterator.h"
 #include "Algorithm.h"
 #include "Utility.h"
+#include "Hash.h"
 
 namespace FluxStd
 {
@@ -486,6 +487,15 @@ namespace FluxStd
 			return String::Npos;
 		}
 
+		size_t GetHash() const
+		{
+			return FNV1aHash(m_pBuffer, m_Size);
+		}
+		struct Hash
+		{
+			size_t operator()(const String& other) const { return other.GetHash(); }
+		};
+
 		template<typename ...Args>
 		static String Printf(const char* format, Args... args)
 		{
@@ -542,7 +552,7 @@ namespace FluxStd
 	};
 
 	template<>
-	void Swap(String& a, String& b)
+	inline void Swap(String& a, String& b)
 	{
 		a.Swap(b);
 	}

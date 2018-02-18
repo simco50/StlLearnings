@@ -797,7 +797,7 @@ namespace FluxStd
 	};
 
 	template<typename K, typename V, typename KeyCompare>
-	void Swap(Map<K, V, KeyCompare>& a, Map<K, V, KeyCompare>& b)
+	inline void Swap(Map<K, V, KeyCompare>& a, Map<K, V, KeyCompare>& b)
 	{
 		a.Swap(b);
 	}

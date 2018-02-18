@@ -548,7 +548,7 @@ namespace FluxStd
 	};
 
 	template<typename K, typename V, typename Hasher>
-	void Swap(HashMap<K, V, Hasher>& a, HashMap<K, V, Hasher>& b)
+	inline void Swap(HashMap<K, V, Hasher>& a, HashMap<K, V, Hasher>& b)
 	{
 		a.Swap(b);
 	}
