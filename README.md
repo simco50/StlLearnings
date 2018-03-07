@@ -11,7 +11,17 @@ Besides that, I use this project as a chance to experiment with combining unit t
 
 | Service | System | Compiler | Branch | Status |
 | ------- | ------ | -------- | ------ | ------ |
-| [AppVeyor](https://ci.appveyor.com/project/simco50/stdlearnings)| Windows 32/64 | Visual Studio 2017 | master | [![Build status](https://ci.appveyor.com/api/projects/status/onjouvded36kqcyt?svg=true)](https://ci.appveyor.com/project/simco50/stdlearnings)
+| [AppVeyor](https://ci.appveyor.com/project/simco50/stdlearnings/branch/master)| Windows x86/x64 | MSVC 2017 | master | [![Build status](https://ci.appveyor.com/api/projects/status/onjouvded36kqcyt/branch/master?svg=true)](https://ci.appveyor.com/project/simco50/stdlearnings/branch/master)
+| [AppVeyor](https://ci.appveyor.com/project/simco50/stdlearnings/branch/dev)| Windows x86/x64 | MSVC 2017 | dev | [![Build status](https://ci.appveyor.com/api/projects/status/onjouvded36kqcyt/branch/dev?svg=true)](https://ci.appveyor.com/project/simco50/stdlearnings/branch/dev)
+
+## Current features
+
+* String
+* Containers: Vector, Map, HashMap, Array
+* Smart Pointers: Unique/Shared/Weak Pointer
+* Iterators
+* Sorting
+* Misc utilities
 
 ## Desired types
 
