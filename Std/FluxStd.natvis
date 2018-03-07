@@ -36,7 +36,7 @@
 			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
 			<ArrayItems Condition="m_Size &lt;= Npos">
 				<Size>m_Size</Size>
-				<ValuePointer>m_pBuffer</ValuePointer>
+				<ValuePointer>($T1*)m_pBuffer</ValuePointer>
 			</ArrayItems>
 		</Expand>
 	</Type>

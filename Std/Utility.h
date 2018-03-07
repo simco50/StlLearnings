@@ -59,17 +59,17 @@ namespace FluxStd
 	template<typename T>
 	struct LessThan
 	{
-		constexpr bool operator()(const T& a, const T& b) { return a < b; }
+		constexpr bool operator()(const T& a, const T& b) const { return a < b; }
 	};
 	template<typename T>
 	struct GreaterThan
 	{
-		constexpr bool operator()(const T& a, const T& b) { return a > b; }
+		constexpr bool operator()(const T& a, const T& b) const { return a > b; }
 	};
 	template<typename T>
 	struct EqualTo
 	{
-		constexpr bool operator()(const T& a, const T& b) { return a == b; }
+		constexpr bool operator()(const T& a, const T& b) const { return a == b; }
 	};
 
 	template< class T> 
