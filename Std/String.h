@@ -5,6 +5,7 @@
 #include "Algorithm.h"
 #include "Utility.h"
 #include "Hash.h"
+#include "Vector.h"
 
 namespace FluxStd
 {
@@ -353,7 +354,7 @@ namespace FluxStd
 			m_pBuffer[m_Size] = '\0';
 		}
 
-		String Substring(const unsigned int from, const size_t length = String::Npos)
+		String Substring(const unsigned int from, const size_t length = String::Npos) const
 		{
 			if (length == String::Npos)
 			{
@@ -485,6 +486,57 @@ namespace FluxStd
 				}
 			}
 			return String::Npos;
+		}
+
+		bool StartsWith(const char* pStr) const
+		{
+			const size_t len = StrLen(pStr);
+			if (len > m_Size)
+				return false;
+			for (size_t i = 0; i < len; i++)
+			{
+				if (m_pBuffer[i] != pStr[i])
+					return false;
+			}
+			return true;
+		}
+
+		bool EndsWith(const char* pStr) const
+		{
+			const size_t len = StrLen(pStr);
+			if (len > m_Size)
+				return false;
+			for (size_t i = 0; i < len ; i++)
+			{
+				if (m_pBuffer[m_Size - len + i] != pStr[i])
+					return false;
+			}
+			return true;
+		}
+
+		Vector<String> Split(const char delimiter) const
+		{
+			return Split(&delimiter, 1);
+		}
+
+		Vector<String> Split(const char* pDelimiters, const size_t delimiterCount) const
+		{
+			Vector<String> out;
+			size_t start = 0;
+			for (size_t i = 0; i < m_Size; i++)
+			{
+				for (size_t j = 0; j < delimiterCount ; j++)
+				{
+					if (m_pBuffer[i] == pDelimiters[j])
+					{
+						out.Push(Substring(start, i - start));
+						start = i + 1;
+						break;
+					}
+				}
+			}
+			out.Push(Substring(start));
+			return out;
 		}
 
 		size_t GetHash() const
