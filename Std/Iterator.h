@@ -153,7 +153,7 @@ namespace FluxStd
 		const T* operator->() const { return pPtr; }
 		const T& operator*() const { return *pPtr; }
 
-		T* pPtr;
+		const T* pPtr;
 	};
 
 	template<typename T>

@@ -296,6 +296,50 @@ namespace FluxStd
 			}
 		}
 
+		void ToUpperInline()
+		{
+			if (m_pBuffer)
+			{
+				for (char& c : *this)
+					c = FluxStd::ToUpper(c);
+			}
+		}
+
+		String ToUpper()
+		{
+			String str;
+			if (m_pBuffer == nullptr)
+				return str;
+			str.m_pBuffer = new char[m_Capacity + 1];
+			str.m_Capacity = m_Capacity;
+			str.m_Size = m_Size;
+			for (size_t i = 0; i < m_Size + 1; i++)
+				str.m_pBuffer[i] = FluxStd::ToUpper(m_pBuffer[i]);
+			return str;
+		}
+
+		void ToLowerInline()
+		{
+			if (m_pBuffer)
+			{
+				for (char& c : *this)
+					c = FluxStd::ToLower(c);
+			}
+		}
+
+		String ToLower()
+		{
+			String str;
+			if (m_pBuffer == nullptr)
+				return str;
+			str.m_pBuffer = new char[m_Capacity + 1];
+			str.m_Capacity = m_Capacity;
+			str.m_Size = m_Size;
+			for (size_t i = 0; i < m_Size + 1; i++)
+				str.m_pBuffer[i] = FluxStd::ToLower(m_pBuffer[i]);
+			return str;
+		}
+
 		size_t Find(const char c) const
 		{
 			if (m_Size > 0)

@@ -725,6 +725,66 @@ TEST_CASE("String - Substring", "[String]")
 }
 #pragma endregion Addition/Deletion
 
+#pragma region Manipulation
+
+TEST_CASE("String - ToLower", "[String]")
+{
+	SECTION("Inline")
+	{
+		String s = "Hello World";
+		s.ToLowerInline();
+		REQUIRE(s == "hello world");
+	}
+	SECTION("Inline - Empty")
+	{
+		String s;
+		s.ToLowerInline();
+		REQUIRE(s == "");
+	}
+	SECTION("Copy")
+	{
+		String s = "Hello World";
+		String low = s.ToLower();
+		REQUIRE(low == "hello world");
+	}
+	SECTION("Copy - Empty")
+	{
+		String s;
+		String low = s.ToLower();
+		REQUIRE(low == "");
+	}
+}
+
+TEST_CASE("String - ToUpper", "[String]")
+{
+	SECTION("Inline")
+	{
+		String s = "Hello World";
+		s.ToUpperInline();
+		REQUIRE(s == "HELLO WORLD");
+	}
+	SECTION("Inline - Empty")
+	{
+		String s;
+		s.ToUpperInline();
+		REQUIRE(s == "");
+	}
+	SECTION("Copy")
+	{
+		String s = "Hello World";
+		String low = s.ToUpper();
+		REQUIRE(low == "HELLO WORLD");
+	}
+	SECTION("Copy - Empty")
+	{
+		String s;
+		String low = s.ToUpper();
+		REQUIRE(low == "");
+	}
+}
+
+#pragma endregion Manipulation
+
 #pragma region Search
 
 TEST_CASE("String - Find", "[String]")
