@@ -11,8 +11,8 @@ Besides that, I use this project as a chance to experiment with combining unit t
 
 | Service | System | Compiler | Branch | Status |
 | ------- | ------ | -------- | ------ | ------ |
-| [AppVeyor](https://ci.appveyor.com/project/simco50/stdlearnings/branch/master)| Windows x86/x64 | MSVC 2017 | master | [![Build status](https://ci.appveyor.com/api/projects/status/onjouvded36kqcyt/branch/master?svg=true)](https://ci.appveyor.com/project/simco50/stdlearnings/branch/master)
-| [AppVeyor](https://ci.appveyor.com/project/simco50/stdlearnings/branch/dev)| Windows x86/x64 | MSVC 2017 | dev | [![Build status](https://ci.appveyor.com/api/projects/status/onjouvded36kqcyt/branch/dev?svg=true)](https://ci.appveyor.com/project/simco50/stdlearnings/branch/dev)
+| [AppVeyor](https://ci.appveyor.com/project/simco50/stllearnings/branch/master)| Windows x86/x64 | MSVC 2017 | master | [![Build status](https://ci.appveyor.com/api/projects/status/rnwtdb1ww7fe77lb/branch/master?svg=true)](https://ci.appveyor.com/project/simco50/stllearnings/branch/master)
+| [AppVeyor](https://ci.appveyor.com/project/simco50/stllearnings/branch/dev)| Windows x86/x64 | MSVC 2017 | dev | [![Build status](https://ci.appveyor.com/api/projects/status/rnwtdb1ww7fe77lb/branch/dev?svg=true)](https://ci.appveyor.com/project/simco50/stllearnings/branch/dev)
 
 ## Current features
 
