@@ -221,7 +221,7 @@ namespace FluxStd
 		T Pop()
 		{
 			assert(m_Size > 0);
-			T value = Back();
+			T value = Move(Back());
 			DestructElements(End().pPtr - 1, 1);
 			--m_Size;
 			return value;
