@@ -1,5 +1,5 @@
-workspace "StlLearnings"
-	filename "StlLearnings_%{_ACTION}"
+workspace "StdLearnings"
+	filename "StdLearnings_%{_ACTION}"
 	basedir "../"
 	configurations { "Debug", "Release" }
     platforms {"x86", "x64"}
@@ -32,8 +32,8 @@ workspace "StlLearnings"
 		 	symbols "Off"
 		 	optimize "Full"
 
-	project "StlLearnings"
-		filename "StlLearnings_%{_ACTION}"
+	project "StdLearnings"
+		filename "StdLearnings_%{_ACTION}"
 		location ".."
 		targetdir "../Build/$(ProjectName)_$(Platform)_$(Configuration)"
 		objdir "!../Build/Intermediate/$(ProjectName)_$(Platform)_$(Configuration)"
