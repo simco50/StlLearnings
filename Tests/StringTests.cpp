@@ -814,6 +814,104 @@ TEST_CASE("String - RFind", "[String]")
 	}
 }
 
+TEST_CASE("String - StartsWith", "[String]")
+{
+	SECTION("Empty")
+	{
+		String s1;
+		REQUIRE(s1.StartsWith("Hi") == false);
+	}
+	SECTION("Non-Empty - Found")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.StartsWith("Hello"));
+	}
+	SECTION("Non-Empty - Not Found")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.StartsWith("World") == false);
+	}
+	SECTION("Non-Empty - Found - Same size")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.StartsWith("Hello World"));
+	}
+}
+
+TEST_CASE("String - EndsWith", "[String]")
+{
+	SECTION("Empty")
+	{
+		String s1;
+		REQUIRE(s1.EndsWith("Hi") == false);
+	}
+	SECTION("Non-Empty - Found")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.EndsWith("World"));
+	}
+	SECTION("Non-Empty - Not Found")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.EndsWith("Hello") == false);
+	}
+	SECTION("Non-Empty - Found - Same size")
+	{
+		String s1 = "Hello World";
+		REQUIRE(s1.EndsWith("Hello World"));
+	}
+}
+
+TEST_CASE("String - Split", "[String]")
+{
+	SECTION("Empty")
+	{
+		String s1;
+		Vector<String> parts = s1.Split(',');
+		REQUIRE(parts.Size() == 1);
+	}
+	SECTION("Non-Empty - No split")
+	{
+		String s1 = "Hello World";
+		Vector<String> parts = s1.Split(',');
+		REQUIRE(parts.Size() == 1);
+		REQUIRE(parts[0] == "Hello World");
+	}
+	SECTION("Non-Empty - Split")
+	{
+		String s1 = "Hello World";
+		Vector<String> parts = s1.Split(' ');
+		REQUIRE(parts.Size() == 2);
+		REQUIRE(parts[0] == "Hello");
+		REQUIRE(parts[1] == "World");
+	}
+	SECTION("Non-Empty - Split - Short")
+	{
+		String s1 = "H e l l o W o r l d";
+		Vector<String> parts = s1.Split(' ');
+		REQUIRE(parts.Size() == 10);
+	}
+	SECTION("Non-Empty - Split - Duplicate delimiters")
+	{
+		String s1 = "Hello   World";
+		Vector<String> parts = s1.Split(' ');
+		REQUIRE(parts.Size() == 4);
+		REQUIRE(parts[0] == "Hello");
+		REQUIRE(parts[1] == "");
+		REQUIRE(parts[2] == "");
+		REQUIRE(parts[3] == "World");
+	}
+	SECTION("Non-Empty - Split - Multiple delimiters")
+	{
+		String s1 = "Hello,World Hi";
+		Vector<String> parts = s1.Split(", ", 2);
+		REQUIRE(parts.Size() == 3);
+		REQUIRE(parts[0] == "Hello");
+		REQUIRE(parts[1] == "World");
+		REQUIRE(parts[2] == "Hi");
+	}
+}
+
 #pragma endregion Search
 
 #pragma region Misc

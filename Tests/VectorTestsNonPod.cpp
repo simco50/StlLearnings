@@ -2,11 +2,40 @@
 #include "../Std/Vector.h"
 using namespace FluxStd;
 
-using TestType = int;
+struct TestType
+{
+	TestType(const int value = 0) : Value(new int(value)) {}
+	TestType(const size_t value) : Value(new int((int)value)) {}
+	TestType(TestType&& other) : Value(other.Value) { other.Value = nullptr; }
+	~TestType() { if(Value) delete Value; }
+	TestType(const TestType& other) : Value(new int(*other.Value)) {}
+	TestType& operator=(const TestType& other)
+	{
+		if (Value)
+			delete Value;
+		Value = new int(*other.Value);
+		return *this;
+	}
+	TestType& operator=(TestType&& other)
+	{
+		if (Value)
+			delete Value;
+		Value = other.Value;
+		other.Value = nullptr;
+		return *this;
+	}
+	bool operator==(const int value) const { return *Value == value; }
+	bool operator==(const TestType& other) const { return *Value == *other.Value; }
+	bool operator!=(const TestType& other) const { return *Value != *other.Value; }
+	operator int() const { return *Value; }
+	operator size_t() const { return (size_t)*Value; }
+
+	int* Value = nullptr;
+};
 
 #pragma region Constructors
 
-TEST_CASE("Vector - PoD - Constructor", "[Vector]")
+TEST_CASE("Vector - NonPoD - Constructor", "[Vector]")
 {
 	SECTION("Empty")
 	{
@@ -59,7 +88,7 @@ TEST_CASE("Vector - PoD - Constructor", "[Vector]")
 	{
 		const size_t size = 5;
 		TestType* pData = new TestType[size];
-		for (size_t i = 0; i < size ; i++)
+		for (size_t i = 0; i < size; i++)
 			pData[i] = 50;
 		Vector<TestType> v(pData, size);
 		delete[] pData;
@@ -141,7 +170,7 @@ TEST_CASE("Vector - PoD - Constructor", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Assigment Operator", "[Vector]")
+TEST_CASE("Vector - NonPoD - Assigment Operator", "[Vector]")
 {
 	SECTION("Copy - Same Size")
 	{
@@ -233,7 +262,7 @@ TEST_CASE("Vector - PoD - Assigment Operator", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Comparison", "[Vector]")
+TEST_CASE("Vector - NonPoD - Comparison", "[Vector]")
 {
 	SECTION("Same size")
 	{
@@ -260,7 +289,7 @@ TEST_CASE("Vector - PoD - Comparison", "[Vector]")
 
 #pragma region Sizing
 
-TEST_CASE("Vector - PoD - Clear", "[Vector]")
+TEST_CASE("Vector - NonPoD - Clear", "[Vector]")
 {
 	SECTION("Empty")
 	{
@@ -284,7 +313,7 @@ TEST_CASE("Vector - PoD - Clear", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Resize", "[Vector]")
+TEST_CASE("Vector - NonPoD - Resize", "[Vector]")
 {
 	SECTION("Increase size and capacity")
 	{
@@ -313,7 +342,7 @@ TEST_CASE("Vector - PoD - Resize", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Reserve", "[Vector]")
+TEST_CASE("Vector - NonPoD - Reserve", "[Vector]")
 {
 	SECTION("Increase capacity")
 	{
@@ -349,7 +378,7 @@ TEST_CASE("Vector - PoD - Reserve", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - ShrinkToFit", "[Vector]")
+TEST_CASE("Vector - NonPoD - ShrinkToFit", "[Vector]")
 {
 	SECTION("After push")
 	{
@@ -388,7 +417,7 @@ TEST_CASE("Vector - PoD - ShrinkToFit", "[Vector]")
 
 #pragma region Addition/Deletion
 
-TEST_CASE("Vector - PoD - Push", "[Vector]")
+TEST_CASE("Vector - NonPoD - Push", "[Vector]")
 {
 	SECTION("Empty vector")
 	{
@@ -409,7 +438,7 @@ TEST_CASE("Vector - PoD - Push", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Pop", "[Vector]")
+TEST_CASE("Vector - NonPoD - Pop", "[Vector]")
 {
 	SECTION("Non-empty")
 	{
@@ -417,12 +446,12 @@ TEST_CASE("Vector - PoD - Pop", "[Vector]")
 		for (size_t i = v1.Size() - 1; i > 0; --i)
 		{
 			REQUIRE(v1.Size() == i + 1);
-			REQUIRE(v1.Pop() == (TestType)i + 1);
+			REQUIRE(v1.Pop() == (TestType)(i + 1));
 		}
 	}
 }
 
-TEST_CASE("Vector - PoD - Swap", "[Vector]")
+TEST_CASE("Vector - NonPoD - Swap", "[Vector]")
 {
 	SECTION("Both filled")
 	{
@@ -462,7 +491,7 @@ TEST_CASE("Vector - PoD - Swap", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - Assign multiple", "[Vector]")
+TEST_CASE("Vector - NonPoD - Assign multiple", "[Vector]")
 {
 	SECTION("No capacity")
 	{
@@ -497,7 +526,7 @@ TEST_CASE("Vector - PoD - Assign multiple", "[Vector]")
 	}
 }
 
-TEST_CASE("Vector - PoD - SwapEraseAt", "[Vector]")
+TEST_CASE("Vector - NonPoD - SwapEraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
 	v1.SwapEraseAt(2);
@@ -508,7 +537,7 @@ TEST_CASE("Vector - PoD - SwapEraseAt", "[Vector]")
 	REQUIRE(v1[3] == 4);
 }
 
-TEST_CASE("Vector - PoD - EraseAt", "[Vector]")
+TEST_CASE("Vector - NonPoD - EraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
 	v1.EraseAt(2);
@@ -520,7 +549,7 @@ TEST_CASE("Vector - PoD - EraseAt", "[Vector]")
 	REQUIRE(v1.Size() == 4);
 }
 
-TEST_CASE("Vector - PoD - Insert", "[Vector]")
+TEST_CASE("Vector - NonPoD - Insert", "[Vector]")
 {
 	SECTION("No capacity - In the middle")
 	{
@@ -588,7 +617,7 @@ TEST_CASE("Vector - PoD - Insert", "[Vector]")
 
 #pragma region Search
 
-TEST_CASE("Vector - PoD - Find", "[Vector]")
+TEST_CASE("Vector - NonPoD - Find", "[Vector]")
 {
 	SECTION("Non-Empty")
 	{
@@ -607,7 +636,7 @@ TEST_CASE("Vector - PoD - Find", "[Vector]")
 
 #pragma region Misc
 
-TEST_CASE("Vector - PoD - Conversion", "[Vector]")
+TEST_CASE("Vector - NonPoD - Conversion", "[Vector]")
 {
 	SECTION("bool")
 	{
