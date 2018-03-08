@@ -44,7 +44,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.begin() == nullptr);
 		REQUIRE(s.end() == nullptr);
 		REQUIRE(s.Data() == nullptr);
-		REQUIRE(s.C_Str() == nullptr);
 	}
 	SECTION("int")
 	{
@@ -56,7 +55,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.begin() != nullptr);
 		REQUIRE(s.end() != nullptr);
 		REQUIRE(s.Data() != nullptr);
-		REQUIRE(s.C_Str() != nullptr);
 	}
 	SECTION("char array")
 	{
@@ -68,7 +66,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.begin() != nullptr);
 		REQUIRE(s.end() != nullptr);
 		REQUIRE(s.Data() != nullptr);
-		REQUIRE(s.C_Str() != nullptr);
 	}
 	SECTION("wchar_t array")
 	{
@@ -80,7 +77,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.begin() != nullptr);
 		REQUIRE(s.end() != nullptr);
 		REQUIRE(s.Data() != nullptr);
-		REQUIRE(s.C_Str() != nullptr);
 	}
 	SECTION("begin/end")
 	{
@@ -93,7 +89,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.begin() != nullptr);
 		REQUIRE(s.end() != nullptr);
 		REQUIRE(s.Data() != nullptr);
-		REQUIRE(s.C_Str() != nullptr);
 	}
 	SECTION("Move semantics")
 	{
@@ -105,7 +100,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s1.begin() != nullptr);
 		REQUIRE(s1.end() != nullptr);
 		REQUIRE(s1.Data() != nullptr);
-		REQUIRE(s1.C_Str() != nullptr);
 
 		String s2(Move(s1));
 		REQUIRE(s1.Empty());
@@ -115,7 +109,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s1.begin() == nullptr);
 		REQUIRE(s1.end() == nullptr);
 		REQUIRE(s1.Data() == nullptr);
-		REQUIRE(s1.C_Str() == nullptr);
 
 		REQUIRE(!s2.Empty());
 		REQUIRE(s2 == "Hello world");
@@ -124,7 +117,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s2.begin() != nullptr);
 		REQUIRE(s2.end() != nullptr);
 		REQUIRE(s2.Data() != nullptr);
-		REQUIRE(s2.C_Str() != nullptr);
 	}
 	SECTION("Deep copy")
 	{
@@ -136,7 +128,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s1.begin() != nullptr);
 		REQUIRE(s1.end() != nullptr);
 		REQUIRE(s1.Data() != nullptr);
-		REQUIRE(s1.C_Str() != nullptr);
 
 		String s2(s1);
 		REQUIRE(!s1.Empty());
@@ -146,7 +137,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s1.begin() != nullptr);
 		REQUIRE(s1.end() != nullptr);
 		REQUIRE(s1.Data() != nullptr);
-		REQUIRE(s1.C_Str() != nullptr);
 
 		REQUIRE(!s2.Empty());
 		REQUIRE(s2 == "Hello world");
@@ -155,7 +145,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s2.begin() != nullptr);
 		REQUIRE(s2.end() != nullptr);
 		REQUIRE(s2.Data() != nullptr);
-		REQUIRE(s2.C_Str() != nullptr);
 
 		REQUIRE(s1.Data() != s2.Data());
 	}
@@ -177,7 +166,6 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s1.begin() != nullptr);
 		REQUIRE(s1.end() != nullptr);
 		REQUIRE(s1.Data() != nullptr);
-		REQUIRE(s1.C_Str() != nullptr);
 
 		String s2;
 		s2 = s1;
@@ -189,7 +177,6 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s1.begin() != nullptr);
 		REQUIRE(s1.end() != nullptr);
 		REQUIRE(s1.Data() != nullptr);
-		REQUIRE(s1.C_Str() != nullptr);
 
 		REQUIRE(!s2.Empty());
 		REQUIRE(s2 == "Hello world");
@@ -198,7 +185,6 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s2.begin() != nullptr);
 		REQUIRE(s2.end() != nullptr);
 		REQUIRE(s2.Data() != nullptr);
-		REQUIRE(s2.C_Str() != nullptr);
 
 		REQUIRE(s1.Data() != s2.Data());
 	}
@@ -215,7 +201,6 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s1.begin() == nullptr);
 		REQUIRE(s1.end() == nullptr);
 		REQUIRE(s1.Data() == nullptr);
-		REQUIRE(s1.C_Str() == nullptr);
 
 		REQUIRE(!s2.Empty());
 		REQUIRE(s2 == "Hello World");
@@ -224,7 +209,6 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s2.begin() != nullptr);
 		REQUIRE(s2.end() != nullptr);
 		REQUIRE(s2.Data() != nullptr);
-		REQUIRE(s2.C_Str() != nullptr);
 
 		REQUIRE(s1.Data() != s2.Data());
 	}
@@ -429,7 +413,7 @@ TEST_CASE("String - ShrinkToFit", "[String]")
 		String s = "Hello";
 		s.ShrinkToFit();
 		REQUIRE(s.Capacity() == 5);
-		s.Push('C');
+		s.Append('C');
 		s.ShrinkToFit();
 		REQUIRE(s.Capacity() == 6);
 	}
@@ -461,13 +445,13 @@ TEST_CASE("String - ShrinkToFit", "[String]")
 
 #pragma region Addition/Deletion
 
-TEST_CASE("String - Push", "[String]")
+TEST_CASE("String - Append - Single", "[String]")
 {
 	SECTION("Empty String")
 	{
 		String s;
 		REQUIRE(s.Size() == 0);
-		s.Push('O');
+		s.Append('O');
 		REQUIRE(s.Size() == 1);
 	}
 	SECTION("Non-empty String")
@@ -475,7 +459,7 @@ TEST_CASE("String - Push", "[String]")
 		String s = "Hel";
 		REQUIRE(s.Size() == 3);
 		char* pData = s.Data();
-		s.Push('P');
+		s.Append('P');
 		REQUIRE(pData != s.Data());
 		pData = s.Data();
 		REQUIRE(s.Size() == 4);
@@ -909,6 +893,17 @@ TEST_CASE("String - Split", "[String]")
 		REQUIRE(parts[0] == "Hello");
 		REQUIRE(parts[1] == "World");
 		REQUIRE(parts[2] == "Hi");
+	}
+}
+
+TEST_CASE("String - Replace", "[String]")
+{
+	SECTION("Replace")
+	{
+		String s1 = "Hello World";
+		s1.Replace('o', 'a');
+		REQUIRE(s1[4] == 'a');
+		REQUIRE(s1[7] == 'a');
 	}
 }
 

@@ -21,13 +21,13 @@ namespace FluxStd
 		Vector(const size_t size) :
 			m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
-			ConstructElements(Buffer(), nullptr, size);
+			ConstructElements(Buffer(), size);
 		}
 
 		Vector(const size_t size, const T& value) :
 			m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
-			ConstructElements(Buffer(), nullptr, size);
+			ConstructElements(Buffer(), size);
 			for (size_t i = 0; i < size; ++i)
 				Buffer()[i] = value;
 		}
@@ -93,50 +93,6 @@ namespace FluxStd
 			return *this;
 		}
 
-		bool operator==(const Vector<T>& other) const
-		{
-			if (m_Size != other.m_Size)
-				return false;
-			for (size_t i = 0; i < m_Size; ++i)
-			{
-				if (Buffer()[i] != other.Buffer()[i])
-					return false;
-			}
-			return true;
-		}
-
-		bool operator!=(const Vector& other) const
-		{
-			return !operator==(other);
-		}
-
-		operator bool() const
-		{
-			return m_Size > 0;
-		}
-
-		T& operator[](const size_t index)
-		{
-			return Buffer()[index];
-		}
-
-		const T& operator[](const size_t index) const
-		{
-			return Buffer()[index];
-		}
-
-		T& At(const size_t index)
-		{
-			assert(index < m_Size);
-			return Buffer()[index];
-		}
-
-		const T& At(const size_t index) const
-		{
-			assert(index < m_Size);
-			return Buffer()[index];
-		}
-
 		//Keeps the items in memory but reset the size
 		void Clear()
 		{
@@ -151,23 +107,25 @@ namespace FluxStd
 				unsigned char* pNewBuffer = Allocate(size);
 				size_t copyWidth = size > m_Size ? m_Size : size;
 				memcpy(pNewBuffer, m_pBuffer, sizeof(T) * copyWidth);
+				//Shrinking
 				if (size < m_Size)
 				{
 					DestructElements(Buffer() + copyWidth, m_Size - size);
 					Free(m_pBuffer);
 					m_pBuffer = pNewBuffer;
 				}
+				//Enlarging
 				else
 				{
 					Free(m_pBuffer);
 					m_pBuffer = pNewBuffer;
-					ConstructElements(Buffer() + copyWidth, nullptr, size - m_Size);
+					ConstructElements(Buffer() + copyWidth, size - m_Size);
 				}
 			}
 			else
 			{
 				m_pBuffer = Allocate(size);
-				ConstructElements(Buffer(), nullptr, size);
+				ConstructElements(Buffer(), size);
 			}
 			m_Size = size;
 			m_Capacity = size;
@@ -222,7 +180,7 @@ namespace FluxStd
 		{
 			assert(m_Size > 0);
 			T value = Move(Back());
-			DestructElements(End().pPtr - 1, 1);
+			DestructElements(Buffer() + m_Size - 1, 1);
 			--m_Size;
 			return value;
 		}
@@ -266,10 +224,24 @@ namespace FluxStd
 			if (m_Size == m_Capacity)
 				Reserve(m_Size + 1);
 
-			ConstructElements(Buffer() + m_Size, nullptr, 1);
+			ConstructElements(Buffer() + m_Size, 1);
+			for (size_t i = m_Size; i > index; --i)
+				Buffer()[i] = Buffer()[i - 1];
+			Buffer()[index] = value;
+			++m_Size;
+			return Iterator(Buffer() + index);
+		}
+
+		Iterator Insert(const size_t index, T&& value)
+		{
+			assert(index <= m_Size);
+			if (m_Size == m_Capacity)
+				Reserve(m_Size + 1);
+
+			ConstructElements(Buffer() + m_Size, 1);
 			for (size_t i = m_Size; i > index; --i)
 				Buffer()[i] = Move(Buffer()[i - 1]);
-			Buffer()[index] = value;
+			Buffer()[index] = Move(value);
 			++m_Size;
 			return Iterator(Buffer() + index);
 		}
@@ -288,6 +260,47 @@ namespace FluxStd
 			while (pIt != End() && *pIt != value)
 				++pIt;
 			return pIt;
+		}
+
+		bool operator==(const Vector<T>& other) const
+		{
+			if (m_Size != other.m_Size)
+				return false;
+			for (size_t i = 0; i < m_Size; ++i)
+			{
+				if (Buffer()[i] != other.Buffer()[i])
+					return false;
+			}
+			return true;
+		}
+
+		bool operator!=(const Vector& other) const
+		{
+			if (m_Size != other.m_Size)
+				return true;
+			for (size_t i = 0; i < m_Size; ++i)
+			{
+				if (Buffer()[i] != other.Buffer()[i])
+					return true;
+			}
+			return false;
+		}
+
+		operator bool() const {	return m_Size > 0; }
+
+		T& operator[](const size_t index) {	return Buffer()[index];	}
+		const T& operator[](const size_t index) const {	return Buffer()[index];	}
+
+		T& At(const size_t index)
+		{
+			assert(index < m_Size);
+			return Buffer()[index];
+		}
+
+		const T& At(const size_t index) const
+		{
+			assert(index < m_Size);
+			return Buffer()[index];
 		}
 
 		const T* Data() const { return Buffer(); }
@@ -311,8 +324,7 @@ namespace FluxStd
 		T& Back() { assert(m_Size > 0); return *(Buffer() + m_Size - 1); }
 		const T& Back() const { assert(m_Size > 0); return *(Buffer() + m_Size - 1); }
 
-		constexpr static size_t MaxSize() { return Npos; }
-		static const size_t Npos = ~(size_t)0;
+		constexpr static size_t MaxSize() { return ~(size_t)0; }
 
 	private:
 		inline size_t CalculateGrowth(const size_t oldSize)
@@ -321,10 +333,7 @@ namespace FluxStd
 			return newSize == m_Capacity ? newSize + 1 : newSize;
 		}
 
-		inline T* Buffer() const
-		{
-			return reinterpret_cast<T*>(m_pBuffer);
-		}
+		inline T* Buffer() const { return reinterpret_cast<T*>(m_pBuffer); }
 
 		inline unsigned char* Allocate(const size_t size)
 		{
@@ -336,20 +345,21 @@ namespace FluxStd
 			delete[] pBuffer;
 		}
 
+		//Call constructor on elements with source data
 		void ConstructElements(T* pDestination, const T* pSource, const size_t count)
 		{
-			if (!pSource)
-			{
-				for (unsigned i = 0; i < count; ++i)
-					new(pDestination + i) T();
-			}
-			else
-			{
-				for (unsigned i = 0; i < count; ++i)
-					new(pDestination + i) T(pSource[i]);
-			}
+			for (unsigned i = 0; i < count; ++i)
+				new(pDestination + i) T(pSource[i]);
 		}
 
+		//Call empty constructor on elements
+		inline void ConstructElements(T* pDestination, const size_t count)
+		{
+			for (unsigned i = 0; i < count; ++i)
+				new(pDestination + i) T();
+		}
+
+		//Call destructor on elements
 		void DestructElements(T* pDestination, size_t count)
 		{
 			while (count--)
@@ -359,6 +369,7 @@ namespace FluxStd
 			}
 		}
 
+		//Move elements
 		inline void MoveRange(const size_t dest, const size_t src, const size_t count)
 		{
 			if (count)
