@@ -33,10 +33,12 @@ namespace FluxStd
 		using Iterator = RandomAccessIterator<char>;
 		using ConstIterator = RandomAccessConstIterator<char>;
 	public:
+		//Empty string, no buffer
 		String() :
 			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{}
 
+		//Create string filled with defined value
 		String(const size_t size, const char value = '\0') :
 			m_pBuffer(new char[size + 1]), m_Size(size), m_Capacity(size)
 		{
@@ -44,18 +46,21 @@ namespace FluxStd
 			m_pBuffer[size] = '\0';
 		}
 
+		//Create string from c-string
 		String(const char* pData) :
 			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{
 			Append(pData);
 		}
 
+		//Create string from unicode c-string
 		explicit String(const wchar_t* pData) :
 			m_pBuffer(nullptr), m_Size(0)
 		{
 			Append(pData);
 		}
 
+		//Create string from begin and end iterator
 		explicit String(const char* pBegin, const char* pEnd)
 		{
 			if (pBegin == nullptr || pEnd == nullptr)
@@ -83,13 +88,14 @@ namespace FluxStd
 			other.m_Capacity = 0;
 		}
 
-		//Deep copy
+		//Deep copy constructor
 		String(const String& other) :
 			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{
 			Append(other.Data());
 		}
 
+		//Deep copy assignment
 		String& operator=(const String& other)
 		{
 			if(other.m_pBuffer != m_pBuffer)
@@ -106,95 +112,16 @@ namespace FluxStd
 			}
 		}
 
-		String& operator+(const String& other)
+		//Set the size to 0 but keep the buffer or resize to 0
+		void Clear(const bool hard = false)
 		{
-			Append(other.Data());
-			return *this;
+			if (hard == false)
+				m_Size = 0;
+			else
+				Resize(0);
 		}
 
-		String& operator+(const char* pData)
-		{
-			Append(pData);
-			return *this;
-		}
-
-		String& operator+=(const String& other)
-		{
-			Append(other.Data());
-			return *this;
-		}
-
-		String& operator+=(const char* pData)
-		{
-			Append(pData);
-			return *this;
-		}
-
-		bool operator==(const String& other) const
-		{
-			size_t len = Length();
-			if (len != other.m_Size)
-				return false;
-			for (size_t i = 0; i < len; ++i)
-			{
-				if (m_pBuffer[i] != other.m_pBuffer[i])
-					return false;
-			}
-			return true;
-		}
-
-		bool operator!=(const String& other) const
-		{
-			return !operator==(other);
-		}
-
-		bool operator==(const char* pData) const
-		{
-			size_t len = Length();
-			if (len != StrLen(pData))
-				return false;
-			for (size_t i = 0; i < len; ++i)
-			{
-				if (m_pBuffer[i] != pData[i])
-					return false;
-			}
-			return true;
-		}
-
-		bool operator!=(const char* pData) const
-		{
-			return !operator==(pData);
-		}
-
-		bool operator==(const wchar_t* pData) const
-		{
-			size_t len = Length();
-			if (len != StrLen(pData))
-				return false;
-			for (size_t i = 0; i < len; ++i)
-			{
-				if (m_pBuffer[i] != (wchar_t)pData[i])
-					return false;
-			}
-			return true;
-		}
-
-		bool operator!=(const wchar_t* pData) const
-		{
-			return !operator==(pData);
-		}
-
-		const char& operator[](const size_t index) const { return m_pBuffer[index]; }
-		char& operator[](const size_t index) { return m_pBuffer[index]; }
-
-		const char& At(const size_t index) const { assert(index < m_Size); return m_pBuffer[index]; }
-		char& At(const size_t index) { assert(index < m_Size); return m_pBuffer[index]; }
-
-		void Clear()
-		{
-			m_Size = 0;
-		}
-
+		//Hard resize the buffer
 		void Resize(const size_t size)
 		{
 			size_t copyWidth = 0;
@@ -216,6 +143,7 @@ namespace FluxStd
 			m_pBuffer[m_Size] = '\0';
 		}
 
+		//Create a buffer large enough to fit the given size
 		void Reserve(const size_t size)
 		{
 			if (size <= m_Capacity)
@@ -224,8 +152,8 @@ namespace FluxStd
 			if (m_pBuffer != nullptr)
 			{
 				char* pNewBuffer = new char[size + 1];
-				size_t copyWidth = size > m_Size ? m_Size : size;
-				memcpy(pNewBuffer, m_pBuffer, copyWidth);
+				size_t copyWidth = size > m_Size ? m_Size: size;
+				memcpy(pNewBuffer, m_pBuffer, copyWidth + 1);
 				delete[] m_pBuffer;
 				m_pBuffer = pNewBuffer;
 			}
@@ -234,23 +162,12 @@ namespace FluxStd
 				m_pBuffer = new char[size + 1];
 			}
 			m_Capacity = size;
-			m_pBuffer[m_Size] = '\0';
 		}
 
+		//Resizes the buffer so that the characters just without
 		void ShrinkToFit()
 		{
 			Resize(m_Size);
-		}
-
-		void Push(const char value)
-		{
-			if (m_Size >= m_Capacity)
-			{
-				Reserve(CalculateGrowth(m_Size));
-			}
-			*(m_pBuffer + m_Size) = value;
-			++m_Size;
-			m_pBuffer[m_Size] = '\0';
 		}
 
 		char Pop()
@@ -316,11 +233,22 @@ namespace FluxStd
 			m_Size += len;
 		}
 
+		void Append(const char value)
+		{
+			if (m_Size >= m_Capacity)
+			{
+				Reserve(CalculateGrowth(m_Size));
+			}
+			*(m_pBuffer + m_Size) = value;
+			++m_Size;
+			m_pBuffer[m_Size] = '\0';
+		}
+
 		void Append(const char* pData)
 		{
 			if (pData)
 			{
-				const size_t dataSize = StrLen(pData);
+				const size_t dataSize = StrLen(pData);			
 				char* pNewBuffer = new char[m_Size + dataSize + 1];
 				memcpy(pNewBuffer + m_Size, pData, dataSize);
 				if (m_pBuffer)
@@ -539,6 +467,102 @@ namespace FluxStd
 			return out;
 		}
 
+		String& operator+(const String& other)
+		{
+			Append(other.Data());
+			return *this;
+		}
+
+		String& operator+(const char* pData)
+		{
+			Append(pData);
+			return *this;
+		}
+
+		String& operator+(const char c)
+		{
+			Append(c);
+			return *this;
+		}
+
+		String& operator+=(const String& other)
+		{
+			Append(other.Data());
+			return *this;
+		}
+
+		String& operator+=(const char* pData)
+		{
+			Append(pData);
+			return *this;
+		}
+
+		String& operator+=(const char c)
+		{
+			Append(c);
+			return *this;
+		}
+
+		bool operator==(const String& other) const
+		{
+			size_t len = Length();
+			if (len != other.m_Size)
+				return false;
+			for (size_t i = 0; i < len; ++i)
+			{
+				if (m_pBuffer[i] != other.m_pBuffer[i])
+					return false;
+			}
+			return true;
+		}
+
+		bool operator!=(const String& other) const
+		{
+			return !operator==(other);
+		}
+
+		bool operator==(const char* pData) const
+		{
+			size_t len = Length();
+			if (len != StrLen(pData))
+				return false;
+			for (size_t i = 0; i < len; ++i)
+			{
+				if (m_pBuffer[i] != pData[i])
+					return false;
+			}
+			return true;
+		}
+
+		bool operator!=(const char* pData) const
+		{
+			return !operator==(pData);
+		}
+
+		bool operator==(const wchar_t* pData) const
+		{
+			size_t len = Length();
+			if (len != StrLen(pData))
+				return false;
+			for (size_t i = 0; i < len; ++i)
+			{
+				if (m_pBuffer[i] != (wchar_t)pData[i])
+					return false;
+			}
+			return true;
+		}
+
+		bool operator!=(const wchar_t* pData) const
+		{
+			return !operator==(pData);
+		}
+
+		const char& operator[](const size_t index) const { return m_pBuffer[index]; }
+		char& operator[](const size_t index) { return m_pBuffer[index]; }
+
+		const char& At(const size_t index) const { assert(index < m_Size); return m_pBuffer[index]; }
+		char& At(const size_t index) { assert(index < m_Size); return m_pBuffer[index]; }
+
 		size_t GetHash() const
 		{
 			return FNV1aHash(m_pBuffer, m_Size);
@@ -563,36 +587,35 @@ namespace FluxStd
 			return os;
 		}
 
-		const char* C_Str() const { return m_pBuffer; }
 		const char* Data() const { return m_pBuffer; }
 		char* Data() { return m_pBuffer; }
 
 		operator bool() const { return m_Size > 0; }
-		bool Empty() const { return m_Size == 0; }
-		size_t Size() const { return m_Size; }
-		size_t Length() const { return m_pBuffer ? StrLen(m_pBuffer) : 0; }
-		size_t Capacity() const { return m_Capacity; }
+		inline bool Empty() const { return m_Size == 0; }
+		inline size_t Size() const { return m_Size; }
+		inline size_t Length() const { return m_pBuffer ? StrLen(m_pBuffer) : 0; }
+		inline size_t Capacity() const { return m_Capacity; }
 
-		char& Front() { assert(m_pBuffer); return *m_pBuffer; }
-		const char& Front() const { assert(m_pBuffer); return *m_pBuffer; }
-		char& Back() { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
-		const char& Back() const { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
+		inline char& Front() { assert(m_pBuffer); return *m_pBuffer; }
+		inline const char& Front() const { assert(m_pBuffer); return *m_pBuffer; }
+		inline char& Back() { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
+		inline const char& Back() const { assert(m_Size > 0); return *(m_pBuffer + m_Size - 1); }
 		
-		Iterator begin() { return Iterator(m_pBuffer); }
-		Iterator end() { return Iterator(m_pBuffer + m_Size); }
-		ConstIterator begin() const { return ConstIterator(m_pBuffer); }
-		ConstIterator end() const { return ConstIterator(m_pBuffer + m_Size); }
+		inline Iterator begin() { return Iterator(m_pBuffer); }
+		inline Iterator end() { return Iterator(m_pBuffer + m_Size); }
+		inline ConstIterator begin() const { return ConstIterator(m_pBuffer); }
+		inline ConstIterator end() const { return ConstIterator(m_pBuffer + m_Size); }
 
-		Iterator Begin() { return Iterator(m_pBuffer); }
-		Iterator End() { return Iterator(m_pBuffer + m_Size); }
-		ConstIterator Begin() const { return ConstIterator(m_pBuffer); }
-		ConstIterator End() const { return ConstIterator(m_pBuffer + m_Size); }
+		inline Iterator Begin() { return Iterator(m_pBuffer); }
+		inline Iterator End() { return Iterator(m_pBuffer + m_Size); }
+		inline ConstIterator Begin() const { return ConstIterator(m_pBuffer); }
+		inline ConstIterator End() const { return ConstIterator(m_pBuffer + m_Size); }
 		
 		constexpr static size_t MaxSize() { return Npos; }
-		static const size_t Npos = ~(size_t)0;
+		static constexpr size_t Npos = ~(size_t)0;
 
 	private:
-		size_t CalculateGrowth(const size_t oldSize)
+		inline size_t CalculateGrowth(const size_t oldSize)
 		{
 			size_t newSize = (size_t)floor(oldSize * 1.5);
 			return newSize == m_Capacity ? newSize + 1 : newSize;
