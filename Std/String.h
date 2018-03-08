@@ -354,7 +354,7 @@ namespace FluxStd
 			m_pBuffer[m_Size] = '\0';
 		}
 
-		String Substring(const unsigned int from, const size_t length = String::Npos) const
+		String Substring(const size_t from, const size_t length = String::Npos) const
 		{
 			if (length == String::Npos)
 			{
