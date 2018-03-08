@@ -180,7 +180,7 @@ namespace FluxStd
 		{
 			assert(m_Size > 0);
 			T value = Move(Back());
-			DestructElements(End().pPtr - 1, 1);
+			DestructElements(Buffer() + m_Size - 1, 1);
 			--m_Size;
 			return value;
 		}

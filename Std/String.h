@@ -467,6 +467,15 @@ namespace FluxStd
 			return out;
 		}
 
+		void Replace(const char toReplace, const char replaceWith)
+		{
+			for (char& c : *this)
+			{
+				if (c == toReplace)
+					c = replaceWith;
+			}
+		}
+
 		String& operator+(const String& other)
 		{
 			Append(other.Data());
@@ -583,7 +592,8 @@ namespace FluxStd
 
 		friend std::ostream& operator<<(std::ostream& os, const String& string)
 		{
-			os << string.Data();
+			if(string.m_pBuffer)
+				os << string.Data();
 			return os;
 		}
 

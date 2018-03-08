@@ -896,6 +896,17 @@ TEST_CASE("String - Split", "[String]")
 	}
 }
 
+TEST_CASE("String - Replace", "[String]")
+{
+	SECTION("Replace")
+	{
+		String s1 = "Hello World";
+		s1.Replace('o', 'a');
+		REQUIRE(s1[4] == 'a');
+		REQUIRE(s1[7] == 'a');
+	}
+}
+
 #pragma endregion Search
 
 #pragma region Misc
