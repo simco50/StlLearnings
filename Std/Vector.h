@@ -93,6 +93,20 @@ namespace FluxStd
 			return *this;
 		}
 
+		//Move operation
+		Vector& operator=(Vector<T>&& other)
+		{
+			m_Size = other.m_Size;
+			m_Capacity = other.m_Capacity;
+			m_pBuffer = other.m_pBuffer;
+
+			other.m_Size = 0;
+			other.m_Capacity = 0;
+			other.m_pBuffer = nullptr;
+
+			return *this;
+		}
+
 		//Keeps the items in memory but reset the size
 		void Clear()
 		{
@@ -156,23 +170,14 @@ namespace FluxStd
 			Resize(m_Size);
 		}
 
-		void Push(const T& value)
+		template<typename ...Args>
+		void Push(Args&&... args)
 		{
 			if (m_Size >= m_Capacity)
 			{
 				Reserve(CalculateGrowth(m_Size));
 			}
-			new (Buffer() + m_Size) T(value);
-			++m_Size;
-		}
-
-		void Push(T&& value)
-		{
-			if (m_Size >= m_Capacity)
-			{
-				Reserve(CalculateGrowth(m_Size));
-			}
-			new (Buffer() + m_Size) T(Move(value));
+			new (Buffer() + m_Size) T(Forward<Args>(args)...);
 			++m_Size;
 		}
 
@@ -185,7 +190,7 @@ namespace FluxStd
 			return value;
 		}
 
-		void Swap(Vector<T>& other)
+		void Swap(Vector& other)
 		{
 			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
 			FluxStd::Swap(m_Size, other.m_Size);
@@ -218,30 +223,15 @@ namespace FluxStd
 			return Iterator(Buffer() + index);
 		}
 
-		Iterator Insert(const size_t index, const T& value)
+		template<typename ...Args>
+		Iterator Insert(const size_t index, Args&&... args)
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
 				Reserve(m_Size + 1);
 
-			ConstructElements(Buffer() + m_Size, 1);
-			for (size_t i = m_Size; i > index; --i)
-				Buffer()[i] = Buffer()[i - 1];
-			Buffer()[index] = value;
-			++m_Size;
-			return Iterator(Buffer() + index);
-		}
-
-		Iterator Insert(const size_t index, T&& value)
-		{
-			assert(index <= m_Size);
-			if (m_Size == m_Capacity)
-				Reserve(m_Size + 1);
-
-			ConstructElements(Buffer() + m_Size, 1);
-			for (size_t i = m_Size; i > index; --i)
-				Buffer()[i] = Move(Buffer()[i - 1]);
-			Buffer()[index] = Move(value);
+			MoveRange(index + 1, index, m_Size - index);
+			new (Buffer() + index) T(Forward<Args>(args)...);
 			++m_Size;
 			return Iterator(Buffer() + index);
 		}

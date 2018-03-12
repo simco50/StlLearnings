@@ -32,6 +32,10 @@ namespace FluxStd
 			Node(const K& key, const V& value) :
 				Pair(key, value)
 			{}
+
+			Node(const K& key, V&& value) :
+				Pair(key, Forward<V>(value))
+			{}
 		};
 
 	public:
@@ -152,6 +156,7 @@ namespace FluxStd
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), 2);
 			m_pNil = ReserveNode();
+			new (m_pNil) Node(K());
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 		}
@@ -161,6 +166,7 @@ namespace FluxStd
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), list.size() + 2);
 			m_pNil = ReserveNode();
+			new (m_pNil) Node(K());
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 			for (const KeyValuePair<K, V>* pPair = list.begin(); pPair != list.end(); ++pPair)
@@ -174,6 +180,7 @@ namespace FluxStd
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 2);
 			m_pNil = ReserveNode();
+			new (m_pNil) Node(K());
 			m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 			m_pNil->Color = BLACK;
 			CopyFrom(other);
@@ -189,6 +196,7 @@ namespace FluxStd
 			if (m_pNil == nullptr)
 			{
 				m_pNil = ReserveNode();
+				new (m_pNil) Node(K());
 				m_pNil->pParent = m_pNil->pLeft = m_pNil->pRight = m_pNil;
 				m_pNil->Color = BLACK;
 			}
@@ -236,9 +244,10 @@ namespace FluxStd
 			return Find_Internal(key) != nullptr;
 		}
 
-		Iterator Insert(const K& key, const V& value)
+		template<typename ...Args>
+		Iterator Insert(const K& key, Args&&... args)
 		{
-			return Iterator(Insert_Internal(key, value));
+			return Iterator(Insert_Internal(key, Forward<Args>(args)...));
 		}
 
 		Iterator Insert(const KeyValuePair<K, V>& pair)
@@ -426,7 +435,8 @@ namespace FluxStd
 			return nullptr;
 		}
 
-		Node* Insert_Internal(const K& key, const V& value) 
+		template<typename ...Args>
+		Node* Insert_Internal(const K& key, Args... args)
 		{
 			if (m_pRoot == nullptr)
 				CreateRoot();
@@ -442,20 +452,23 @@ namespace FluxStd
 					pNode = pNode->pLeft;
 				else if (compare(pNode->Pair.Key, key))
 					pNode = pNode->pRight;
-				else 
+				else
 				{
-					pNode->Pair.Value = value;
+					pNode->Pair.Value = Move(args...);
 					return pNode;
 				}
 			}
-			Node *pNewNode = ReserveNode(key, value);
+
+			Node *pNewNode = ReserveNode();
+			new (pNewNode) Node(key, Forward<Args>(args)...);
+
 			pNewNode->pParent = pNewParent;
 			pNewNode->pRight = m_pNil;
 			pNewNode->pLeft = m_pNil;
 
 			if (pNewParent == m_pRoot || compare(key, pNewParent->Pair.Key))
 				pNewParent->pLeft = pNewNode;
-			else 
+			else
 				pNewParent->pRight = pNewNode;
 
 			pNewNode->pNext = Successor(pNewNode);
@@ -663,6 +676,7 @@ namespace FluxStd
 		inline void CreateRoot()
 		{
 			m_pRoot = ReserveNode();
+			new (m_pRoot) Node(K());
 			m_pRoot->pParent = m_pRoot->pLeft = m_pRoot->pRight = m_pNil;
 			m_pRoot->Color = BLACK;
 		}
@@ -759,21 +773,6 @@ namespace FluxStd
 		inline Node* ReserveNode()
 		{
 			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
-			new(pNode) Node(K());
-			return pNode;
-		}
-
-		inline Node* ReserveNode(const K& key)
-		{
-			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
-			new(pNode) Node(key);
-			return pNode;
-		}
-
-		inline Node* ReserveNode(const K& key, const V& value)
-		{
-			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
-			new(pNode) Node(key, value);
 			return pNode;
 		}
 
