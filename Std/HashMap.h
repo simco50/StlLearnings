@@ -306,9 +306,15 @@ namespace FluxStd
 			return pIt;
 		}
 
-		template<typename U>
-		Iterator Insert(const K& key, U&& value)
+		Iterator Insert(const K& key, const V& value)
 		{	
+			Iterator pIt = GetOrCreate_Internal(key);
+			pIt.pNode->Pair.Value = value;
+			return pIt;
+		}
+
+		Iterator Insert(const K& key, V&& value)
+		{
 			Iterator pIt = GetOrCreate_Internal(key);
 			pIt.pNode->Pair.Value = Move(value);
 			return pIt;

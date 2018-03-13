@@ -243,8 +243,12 @@ namespace FluxStd
 		{
 			return Find_Internal(key) != nullptr;
 		}
+		
+		Iterator Insert(const K& key, const V& value)
+		{
+			return Iterator(Insert_Internal(key, value));
+		}
 
-		template<typename V>
 		Iterator Insert(const K& key, V&& value)
 		{
 			return Iterator(Insert_Internal(key, Forward<V>(value)));
@@ -435,8 +439,8 @@ namespace FluxStd
 			return nullptr;
 		}
 
-		template<typename V>
-		Node* Insert_Internal(const K& key, V&& value)
+		template<typename U>
+		Node* Insert_Internal(const K& key, U&& value)
 		{
 			if (m_pRoot == nullptr)
 				CreateRoot();
@@ -460,7 +464,7 @@ namespace FluxStd
 			}
 
 			Node *pNewNode = ReserveNode();
-			new (pNewNode) Node(key, Forward<V>(value));
+			new (pNewNode) Node(key, Forward<U>(value));
 
 			pNewNode->pParent = pNewParent;
 			pNewNode->pRight = m_pNil;
