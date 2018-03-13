@@ -17,6 +17,7 @@
 
 	<!--Array-->
 	<Type Name="FluxStd::Array&lt;*&gt;">
+		<DisplayString>Size = {$T2}</DisplayString>
 		<Expand>
 			<Item Name="[Size]" ExcludeView="simple">$T2</Item>
 			<ArrayItems>
@@ -30,11 +31,11 @@
 	<Type Name="FluxStd::Vector&lt;*&gt;">
 		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
 		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
-		<DisplayString Condition="Npos &lt; m_Size">Invalid</DisplayString>
+		<DisplayString>Size = {m_Size}</DisplayString>
 		<Expand>
 			<Item Name="[Capacity]" ExcludeView="simple">m_Capacity</Item>
 			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
-			<ArrayItems Condition="m_Size &lt;= Npos">
+			<ArrayItems Condition="m_Size &gt;= 0">
 				<Size>m_Size</Size>
 				<ValuePointer>($T1*)m_pBuffer</ValuePointer>
 			</ArrayItems>
@@ -45,6 +46,7 @@
 	<Type Name="FluxStd::HashMap&lt;*&gt;">
 		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
 		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<DisplayString>Size = {m_Size}</DisplayString>
 		<Expand>
 			<Item Name="[Buckets]" ExcludeView="simple">m_BucketCount</Item>
 			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
@@ -67,6 +69,7 @@
 	<Type Name="FluxStd::Map&lt;*&gt;">
 		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
 		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+		<DisplayString>Size = {m_Size}</DisplayString>
 		<Expand>
 			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
 			<LinkedListItems>

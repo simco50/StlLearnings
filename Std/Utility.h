@@ -85,4 +85,24 @@ namespace FluxStd
 	{
 		return value;
 	}
+
+	inline constexpr char ToLower(const char c)
+	{
+		return (c >= 'A' && c <= 'Z') ? c + 32 : c;
+	}
+
+	inline constexpr char ToUpper(const char c)
+	{
+		return (c >= 'a' && c <= 'z') ? c - 32 : c;
+	}
+
+	inline constexpr bool IsLetter(const char c)
+	{
+		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+	}
+
+	inline constexpr bool IsDigit(const char c)
+	{
+		return (c >= '0' && c <= '9');
+	}
 }

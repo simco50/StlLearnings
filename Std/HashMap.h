@@ -13,11 +13,16 @@ namespace FluxStd
 			Pair(K()), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
 		{}
 
+		HashNode(const K& key) :
+			Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+		{}
+
 		HashNode(const K& key, const V& value) :
 			Pair(key, value), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
 		{}
-		HashNode(const K& key) :
-			Pair(key), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
+
+		HashNode(const K& key, V&& value) :
+			Pair(key, Forward<V>(value)), pPrev(nullptr), pNext(nullptr), pDown(nullptr)
 		{}
 
 		KeyValuePair<K, V> Pair;
@@ -162,6 +167,7 @@ namespace FluxStd
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node));
 			AllocateBuckets(START_BUCKETS);
 			m_pHead = ReserveNode();
+			new(m_pHead) Node();
 			m_pTail = m_pHead;
 		}
 
@@ -170,6 +176,7 @@ namespace FluxStd
 		{
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), list.size() + 1);
 			m_pHead = ReserveNode();
+			new(m_pHead) Node();
 			m_pTail = m_pHead;
 			for (const KeyValuePair<K, V>* pPair = list.begin(); pPair != list.end(); ++pPair)
 			{
@@ -183,6 +190,7 @@ namespace FluxStd
 			m_pBlock = BlockAllocator::Initialize(sizeof(Node), other.m_Size + 1);
 			AllocateBuckets(START_BUCKETS);
 			m_pHead = ReserveNode();
+			new(m_pHead) Node();
 			m_pTail = m_pHead;
 			Insert(other);
 		}
@@ -302,6 +310,13 @@ namespace FluxStd
 		{	
 			Iterator pIt = GetOrCreate_Internal(key);
 			pIt.pNode->Pair.Value = value;
+			return pIt;
+		}
+
+		Iterator Insert(const K& key, V&& value)
+		{
+			Iterator pIt = GetOrCreate_Internal(key);
+			pIt.pNode->Pair.Value = Move(value);
 			return pIt;
 		}
 
@@ -450,7 +465,8 @@ namespace FluxStd
 				return pExists;
 			}
 
-			Node* pNewNode = ReserveNode(key);
+			Node* pNewNode = ReserveNode();
+			new(pNewNode) Node(key);
 
 			//Add node to linked listed
 			Node* pPrev = m_pTail->pPrev;
@@ -513,14 +529,6 @@ namespace FluxStd
 		Node* ReserveNode()
 		{
 			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
-			new(pNode) Node();
-			return pNode;
-		}
-
-		Node* ReserveNode(const K& key)
-		{
-			Node* pNode = static_cast<Node*>(BlockAllocator::Alloc(m_pBlock));
-			new(pNode) Node(key);
 			return pNode;
 		}
 

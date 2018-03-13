@@ -1,4 +1,5 @@
 #pragma once
+#include "Utility.h"
 
 namespace FluxStd
 {
@@ -9,6 +10,18 @@ namespace FluxStd
 			Key(key)
 		{}
 
+		KeyValuePair(K&& key, const V& value) :
+			Key(Forward<K>(key)), Value(value)
+		{}
+
+		KeyValuePair(const K& key, V&& value) :
+			Key(key), Value(Forward<V>(value))
+		{}
+
+		KeyValuePair(K&& key, V&& value) :
+			Key(Forward<K>(key)), Value(Forward<V>(value))
+		{}
+
 		KeyValuePair(const K& key, const V& value) :
 			Key(key), Value(value)
 		{}
@@ -17,7 +30,19 @@ namespace FluxStd
 			Key(other.Key), Value(other.Value)
 		{}
 
-		KeyValuePair& operator=(const KeyValuePair& other) = delete;
+		KeyValuePair& operator=(const KeyValuePair& other)
+		{
+			Key = other.Key;
+			Value = other.Value;
+			return *this;
+		}
+
+		KeyValuePair& operator=(KeyValuePair&& other)
+		{
+			Key = Move(other.Key);
+			Value = Move(other.Value);
+			return *this;
+		}
 
 		bool operator==(const KeyValuePair& other) const { return Key == other.Key && Value == other.Value; }
 		bool operator!=(const KeyValuePair& other) const { return Key != other.Key || Value != other.Value; }

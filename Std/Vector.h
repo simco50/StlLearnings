@@ -93,6 +93,20 @@ namespace FluxStd
 			return *this;
 		}
 
+		//Move operation
+		Vector& operator=(Vector<T>&& other)
+		{
+			m_Size = other.m_Size;
+			m_Capacity = other.m_Capacity;
+			m_pBuffer = other.m_pBuffer;
+
+			other.m_Size = 0;
+			other.m_Capacity = 0;
+			other.m_pBuffer = nullptr;
+
+			return *this;
+		}
+
 		//Keeps the items in memory but reset the size
 		void Clear()
 		{
@@ -156,6 +170,11 @@ namespace FluxStd
 			Resize(m_Size);
 		}
 
+		//If input is r-value
+		//T will be int so it uses int&& for Forward
+		//If input is l-value
+		//V& is used for deduction
+		//It uses int& && for Forward which callapses to int&
 		void Push(const T& value)
 		{
 			if (m_Size >= m_Capacity)
@@ -185,7 +204,7 @@ namespace FluxStd
 			return value;
 		}
 
-		void Swap(Vector<T>& other)
+		void Swap(Vector& other)
 		{
 			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
 			FluxStd::Swap(m_Size, other.m_Size);
@@ -224,10 +243,8 @@ namespace FluxStd
 			if (m_Size == m_Capacity)
 				Reserve(m_Size + 1);
 
-			ConstructElements(Buffer() + m_Size, 1);
-			for (size_t i = m_Size; i > index; --i)
-				Buffer()[i] = Buffer()[i - 1];
-			Buffer()[index] = value;
+			MoveRange(index + 1, index, m_Size - index);
+			new (Buffer() + index) T(value);
 			++m_Size;
 			return Iterator(Buffer() + index);
 		}
@@ -238,10 +255,8 @@ namespace FluxStd
 			if (m_Size == m_Capacity)
 				Reserve(m_Size + 1);
 
-			ConstructElements(Buffer() + m_Size, 1);
-			for (size_t i = m_Size; i > index; --i)
-				Buffer()[i] = Move(Buffer()[i - 1]);
-			Buffer()[index] = Move(value);
+			MoveRange(index + 1, index, m_Size - index);
+			new (Buffer() + index) T(Forward<T>(value));
 			++m_Size;
 			return Iterator(Buffer() + index);
 		}
