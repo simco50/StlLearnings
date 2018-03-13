@@ -170,14 +170,19 @@ namespace FluxStd
 			Resize(m_Size);
 		}
 
-		template<typename ...Args>
-		void Push(Args&&... args)
+		//If input is r-value
+		//T will be int so it uses int&& for Forward
+		//If input is l-value
+		//V& is used for deduction
+		//It uses int& && for Forward which callapses to int&
+		template<typename V>
+		void Push(V&& value)
 		{
 			if (m_Size >= m_Capacity)
 			{
 				Reserve(CalculateGrowth(m_Size));
 			}
-			new (Buffer() + m_Size) T(Forward<Args>(args)...);
+			new (Buffer() + m_Size) T(Forward<V>(value));
 			++m_Size;
 		}
 
@@ -223,15 +228,15 @@ namespace FluxStd
 			return Iterator(Buffer() + index);
 		}
 
-		template<typename ...Args>
-		Iterator Insert(const size_t index, Args&&... args)
+		template<typename V>
+		Iterator Insert(const size_t index, V&& value)
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
 				Reserve(m_Size + 1);
 
 			MoveRange(index + 1, index, m_Size - index);
-			new (Buffer() + index) T(Forward<Args>(args)...);
+			new (Buffer() + index) T(Forward<V>(value));
 			++m_Size;
 			return Iterator(Buffer() + index);
 		}
