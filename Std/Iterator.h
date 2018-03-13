@@ -85,7 +85,7 @@ namespace FluxStd
 	template<typename T>
 	struct RandomAccessConstIterator
 	{
-		RandomAccessConstIterator(T* pPtr) :
+		RandomAccessConstIterator(const T* pPtr) :
 			pPtr(pPtr)
 		{}
 

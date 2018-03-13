@@ -12,18 +12,6 @@ namespace FluxStd
 		using ConstIterator = RandomAccessConstIterator<T>;
 
 	public:
-		Array()
-		{}
-
-		Array(const T& value)
-		{
-			for (size_t i = 0; i < size; ++i)
-				m_Data[i] = value;
-		}
-
-		~Array()
-		{}
-
 		void Fill(const T& value)
 		{
 			for (size_t i = 0; i < size; ++i)
