@@ -39,7 +39,9 @@ namespace FluxStd
 	void InsertionSort(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
 	{
 		if (pBegin == pEnd)
+		{
 			return;
+		}
 		for (RandomAccessIterator<T> i = pBegin + 1; i != pEnd; ++i)
 		{
 			T temp = *i;
@@ -57,7 +59,9 @@ namespace FluxStd
 	void InsertionSort(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, CompareFunctor compare)
 	{
 		if (pBegin == pEnd)
+		{
 			return;
+		}
 		for (RandomAccessIterator<T> i = pBegin + 1; i != pEnd; ++i)
 		{
 			T temp = *i;
@@ -81,7 +85,9 @@ namespace FluxStd
 		for (; j != end; j++)
 		{
 			if (*j < *pivot)
+			{
 				Swap(*j, *++i);
+			}
 		}
 		Swap(*pivot, *i);
 		return i;
@@ -91,7 +97,9 @@ namespace FluxStd
 	void QuickSort(RandomAccessIterator<T> begin, RandomAccessIterator<T> end)
 	{
 		if (begin == end)
+		{
 			return;
+		}
 		RandomAccessIterator<T> elementAtCorrectPosition = Partition(begin, end);
 		QuickSort(begin, elementAtCorrectPosition);
 		QuickSort(++elementAtCorrectPosition, end);
@@ -101,11 +109,15 @@ namespace FluxStd
 	bool IsSorted(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd)
 	{
 		if (pBegin == pEnd)
+		{
 			return true;
+		}
 		while(++pBegin != pEnd)
 		{
 			if (*pBegin < *(pBegin - 1))
+			{
 				return false;
+			}
 		}
 		return true;
 	}
@@ -114,11 +126,15 @@ namespace FluxStd
 	bool IsSorted(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd)
 	{
 		if (pBegin == pEnd)
+		{
 			return true;
+		}
 		while (++pBegin != pEnd)
 		{
 			if (*pBegin < *(pBegin - 1))
+			{
 				return false;
+			}
 		}
 		return true;
 	}
@@ -127,11 +143,15 @@ namespace FluxStd
 	bool IsSorted(RandomAccessIterator<T> pBegin, RandomAccessIterator<T> pEnd, CompareFunctor compare)
 	{
 		if (pBegin == pEnd)
+		{
 			return true;
+		}
 		while (++pBegin != pEnd)
 		{
 			if (compare(*pBegin, *(pBegin - 1)))
+			{
 				return false;
+			}			
 		}
 		return true;
 	}
@@ -140,11 +160,15 @@ namespace FluxStd
 	bool IsSorted(RandomAccessConstIterator<T> pBegin, RandomAccessConstIterator<T> pEnd, CompareFunctor compare)
 	{
 		if (pBegin == pEnd)
+		{
 			return true;
+		}
 		while (++pBegin != pEnd)
 		{
 			if (compare(*pBegin, *(pBegin - 1)))
+			{
 				return false;
+			}
 		}
 		return true;
 	}

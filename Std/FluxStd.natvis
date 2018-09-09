@@ -87,4 +87,33 @@
 		</Expand>
 	</Type>
 
+	<!--SmartPtr-->
+	<Type Name="SharedPtr&lt;*&gt;">
+		<DisplayString Condition="m_pPtr==0">Empty</DisplayString>
+		<DisplayString Condition="m_pPtr==0xcccccccc">Invalid</DisplayString>
+		<DisplayString>[SharedPtr] > "{*m_pPtr}" [Hard Refs: {(int)m_pRefCount->StrongRefs} Weak Refs: {(int)m_pRefCount->WeakRefs}]</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_pPtr</Item>
+			<Item Name="Reference" ExcludeView="simple">m_pRefCount</Item>
+		</Expand>
+	</Type>
+	<Type Name="WeakPtr&lt;*&gt;">
+		<DisplayString Condition="m_pPtr==0">Empty</DisplayString>
+		<DisplayString Condition="m_pPtr==0xcccccccc">Invalid</DisplayString>
+		<DisplayString>[WeakPtr] > "{*m_pPtr}" [Hard Refs: {(int)m_pRefCount->StrongRefs} Weak Refs: {(int)m_pRefCount->WeakRefs}]</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_pPtr</Item>
+			<Item Name="Reference" ExcludeView="simple">m_pRefCount</Item>
+		</Expand>
+	</Type>
+	<Type Name="UniquePtr&lt;*&gt;">
+		<DisplayString Condition="m_Object.m_Second==0">Empty</DisplayString>
+		<DisplayString Condition="m_Object.m_Second==0xcccccccc">Invalid</DisplayString>
+		<DisplayString>[UniquePtr] > "{*m_Object.m_Second}"</DisplayString>
+		<Expand>
+			<Item Name="Ptr" ExcludeView="simple">m_Object.m_Second</Item>
+			<Item Name="Deleter" ExcludeView="simple">m_Object</Item>
+		</Expand>
+	</Type>
+
 </AutoVisualizer>

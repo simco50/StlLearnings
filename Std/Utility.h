@@ -3,7 +3,7 @@
 namespace FluxStd
 {
 	template<typename T>
-	inline void Swap(T& first, T& second)
+	void Swap(T& first, T& second) noexcept
 	{
 		T temp = first;
 		first = second;
@@ -11,7 +11,7 @@ namespace FluxStd
 	}
 
 	template <class T>
-	inline void IteratorSwap(T pFirst, T pSecond)
+	inline void IteratorSwap(T pFirst, T pSecond) noexcept
 	{
 		Swap(*pFirst, *pSecond);
 	}
@@ -38,20 +38,20 @@ namespace FluxStd
 	};
 
 	template<class T>
-	inline typename RemoveReference<T>::Type&& Move(T&& arg)
+	inline typename RemoveReference<T>::Type&& Move(T&& arg) noexcept
 	{
 		// forward arg as movable
 		return static_cast<typename RemoveReference<T>::Type&&>(arg);
 	}
 
 	template <class T>
-	inline T&& Forward(typename RemoveReference<T>::Type& t)
+	inline T&& Forward(typename RemoveReference<T>::Type& t) noexcept
 	{
 		return static_cast<T&&>(t);
 	}
 
 	template <class T>
-	inline T&& Forward(typename RemoveReference<T>::Type&& t)
+	inline T&& Forward(typename RemoveReference<T>::Type&& t) noexcept
 	{
 		return static_cast<T&&>(t);
 	}
@@ -86,22 +86,22 @@ namespace FluxStd
 		return value;
 	}
 
-	inline constexpr char ToLower(const char c)
+	inline constexpr char ToLower(const char c) noexcept
 	{
 		return (c >= 'A' && c <= 'Z') ? c + 32 : c;
 	}
 
-	inline constexpr char ToUpper(const char c)
+	inline constexpr char ToUpper(const char c) noexcept
 	{
 		return (c >= 'a' && c <= 'z') ? c - 32 : c;
 	}
 
-	inline constexpr bool IsLetter(const char c)
+	inline constexpr bool IsLetter(const char c) noexcept
 	{
 		return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
 	}
 
-	inline constexpr bool IsDigit(const char c)
+	inline constexpr bool IsDigit(const char c) noexcept
 	{
 		return (c >= '0' && c <= '9');
 	}

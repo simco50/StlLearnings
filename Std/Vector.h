@@ -15,38 +15,40 @@ namespace FluxStd
 		using ConstIterator = RandomAccessConstIterator<T>;
 
 	public:
-		Vector() :
-			m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
+		Vector() noexcept
+			: m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{}
-		Vector(const size_t size) :
-			m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
+		Vector(const size_t size)
+			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), size);
 		}
 
-		Vector(const size_t size, const T& value) :
-			m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
+		Vector(const size_t size, const T& value)
+			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), size);
 			for (size_t i = 0; i < size; ++i)
+			{
 				Buffer()[i] = value;
+			}
 		}
 
-		Vector(T* pData, const size_t size) :
-			m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
+		Vector(T* pData, const size_t size)
+			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), pData, size);
 		}
 
-		Vector(std::initializer_list<T> list) :
-			m_pBuffer(Allocate(list.size())), m_Size(list.size()), m_Capacity(list.size())
+		Vector(std::initializer_list<T> list)
+			: m_pBuffer(Allocate(list.size())), m_Size(list.size()), m_Capacity(list.size())
 		{
 			ConstructElements(Buffer(), list.begin(), list.size());
 		}
 
 		//Move semantics
-		Vector(Vector<T>&& other) :
-			m_pBuffer(other.m_pBuffer), m_Size(other.m_Size), m_Capacity(other.m_Capacity)
+		Vector(Vector&& other)
+			: m_pBuffer(other.m_pBuffer), m_Size(other.m_Size), m_Capacity(other.m_Capacity)
 		{
 			other.m_Size = 0;
 			other.m_Capacity = 0;
@@ -54,8 +56,8 @@ namespace FluxStd
 		}
 
 		//Deep copy
-		Vector(const Vector<T>& other) :
-			m_Size(other.m_Size), m_Capacity(other.m_Capacity)
+		Vector(const Vector& other)
+			: m_Size(other.m_Size), m_Capacity(other.m_Capacity)
 		{
 			m_pBuffer = Allocate(other.m_Size);
 			ConstructElements(Buffer(), other.Buffer(), other.m_Size);
@@ -96,22 +98,23 @@ namespace FluxStd
 		//Move operation
 		Vector& operator=(Vector<T>&& other)
 		{
-			m_Size = other.m_Size;
-			m_Capacity = other.m_Capacity;
-			m_pBuffer = other.m_pBuffer;
-
-			other.m_Size = 0;
-			other.m_Capacity = 0;
-			other.m_pBuffer = nullptr;
-
+			FluxStd::Swap(m_Size, other.m_Size);
+			FluxStd::Swap(m_Capacity, other.m_Capacity);
+			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
 			return *this;
 		}
 
 		//Keeps the items in memory but reset the size
-		void Clear()
+		void Clear(bool shrink = false)
 		{
 			DestructElements(Buffer(), m_Size);
 			m_Size = 0;
+			if (shrink)
+			{
+				m_Capacity = 0;
+				Free(m_pBuffer);
+				m_pBuffer = nullptr;
+			}
 		}
 
 		void Resize(const size_t size)
@@ -147,22 +150,23 @@ namespace FluxStd
 
 		void Reserve(const size_t size)
 		{
-			if (size <= m_Capacity)
-				return;
+			if (size > m_Capacity)
+			{
 
-			if (m_pBuffer != nullptr)
-			{
-				unsigned char* pNewBuffer = Allocate(size);
-				size_t copyWidth = size > m_Size ? m_Size : size;
-				memcpy(pNewBuffer, m_pBuffer, sizeof(T) * copyWidth);
-				Free(m_pBuffer);
-				m_pBuffer = pNewBuffer;
+				if (m_pBuffer != nullptr)
+				{
+					unsigned char* pNewBuffer = Allocate(size);
+					size_t copyWidth = size > m_Size ? m_Size : size;
+					memcpy(pNewBuffer, m_pBuffer, sizeof(T) * copyWidth);
+					Free(m_pBuffer);
+					m_pBuffer = pNewBuffer;
+				}
+				else
+				{
+					m_pBuffer = Allocate(size);
+				}
+				m_Capacity = size;
 			}
-			else
-			{
-				m_pBuffer = Allocate(size);
-			}
-			m_Capacity = size;
 		}
 
 		void ShrinkToFit()
@@ -191,7 +195,19 @@ namespace FluxStd
 			{
 				Reserve(CalculateGrowth(m_Size));
 			}
-			new (Buffer() + m_Size) T(Move(value));
+			new (Buffer() + m_Size) T(FluxStd::Forward<T>(value));
+			++m_Size;
+		}
+
+		//Generally better way to add to an array because the object gets created in the method itself by forwarding the arguments
+		template<typename... Args>
+		void Emplace(Args&&... args)
+		{
+			if (m_Size >= m_Capacity)
+			{
+				Reserve(CalculateGrowth(m_Size));
+			}
+			new (Buffer() + m_Size) T(FluxStd::Forward<Args>(args)...);
 			++m_Size;
 		}
 
@@ -214,9 +230,13 @@ namespace FluxStd
 		void Assign(const size_t amount, const T& value)
 		{
 			if (m_Size + amount > m_Capacity)
+			{
 				Reserve(m_Size + amount);
+			}
 			for (size_t i = 0; i < amount; ++i)
+			{
 				ConstructElements(Buffer() + m_Size + i, &value, 1);
+			}
 			m_Size += amount;
 		}
 
@@ -241,7 +261,9 @@ namespace FluxStd
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
+			{
 				Reserve(m_Size + 1);
+			}
 
 			MoveRange(index + 1, index, m_Size - index);
 			new (Buffer() + index) T(value);
@@ -253,7 +275,9 @@ namespace FluxStd
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
+			{
 				Reserve(m_Size + 1);
+			}
 
 			MoveRange(index + 1, index, m_Size - index);
 			new (Buffer() + index) T(Forward<T>(value));
@@ -265,7 +289,9 @@ namespace FluxStd
 		{
 			ConstIterator pIt = Begin();
 			while (pIt != End() && *pIt != value)
+			{
 				++pIt;
+			}
 			return pIt;
 		}
 
@@ -273,18 +299,34 @@ namespace FluxStd
 		{
 			Iterator pIt = Begin();
 			while (pIt != End() && *pIt != value)
+			{
 				++pIt;
+			}
 			return pIt;
+		}
+
+		//Very simple shuffle
+		void Shuffle()
+		{
+			for (size_t i = 0; i < m_Size; ++i)
+			{
+				size_t j = rand() % m_Size;
+				FluxStd::Swap(m_pBuffer[i], m_pBuffer[j]);
+			}
 		}
 
 		bool operator==(const Vector<T>& other) const
 		{
 			if (m_Size != other.m_Size)
+			{
 				return false;
+			}
 			for (size_t i = 0; i < m_Size; ++i)
 			{
 				if (Buffer()[i] != other.Buffer()[i])
+				{
 					return false;
+				}
 			}
 			return true;
 		}
@@ -292,52 +334,138 @@ namespace FluxStd
 		bool operator!=(const Vector& other) const
 		{
 			if (m_Size != other.m_Size)
+			{
 				return true;
+			}
 			for (size_t i = 0; i < m_Size; ++i)
 			{
 				if (Buffer()[i] != other.Buffer()[i])
+				{
 					return true;
+				}
 			}
 			return false;
 		}
 
-		operator bool() const {	return m_Size > 0; }
+		inline operator bool() const noexcept
+		{
+			return m_Size > 0;
+		}
 
-		T& operator[](const size_t index) {	return Buffer()[index];	}
-		const T& operator[](const size_t index) const {	return Buffer()[index];	}
+		//Non-const. No assert random access
+		inline T& operator[](const size_t index)
+		{
+			return Buffer()[index];
+		}
 
+		//Const.No assert random access
+		inline const T& operator[](const size_t index) const
+		{
+			return Buffer()[index];
+		}
+
+		//Non-const. Assert random access
 		T& At(const size_t index)
 		{
 			assert(index < m_Size);
 			return Buffer()[index];
 		}
 
+		//Const. Assert random access
 		const T& At(const size_t index) const
 		{
 			assert(index < m_Size);
 			return Buffer()[index];
 		}
 
-		const T* Data() const { return Buffer(); }
-		T* Data() { return Buffer(); }
-		size_t Size() const { return m_Size; }
-		size_t Capacity() const { return m_Capacity; }
-		bool Empty() const { return m_Size == 0; }
+		inline const T* Data() const 
+		{ 
+			return Buffer();
+		}
 
-		Iterator begin() { return Iterator(Buffer()); }
-		Iterator end() { return Iterator(Buffer() + m_Size); }
-		ConstIterator begin() const { return ConstIterator(Buffer()); }
-		ConstIterator end() const { return ConstIterator(Buffer() + m_Size); }
+		inline T* Data() 
+		{ 
+			return Buffer();
+		}
 
-		Iterator Begin() { return Iterator(Buffer()); }
-		Iterator End() { return Iterator(Buffer() + m_Size); }
-		ConstIterator Begin() const { return ConstIterator(Buffer()); }
-		ConstIterator End() const { return ConstIterator(Buffer() + m_Size); }
+		inline size_t Size() const 
+		{
+			return m_Size; 
+		}
 
-		T& Front() { assert(m_pBuffer); return *Buffer(); }
-		const T& Front() const { assert(m_pBuffer); return *Buffer(); }
-		T& Back() { assert(m_Size > 0); return *(Buffer() + m_Size - 1); }
-		const T& Back() const { assert(m_Size > 0); return *(Buffer() + m_Size - 1); }
+		inline size_t Capacity() const 
+		{ 
+			return m_Capacity; 
+		}
+
+		inline bool Empty() const
+		{ 
+			return m_Size == 0;
+		}
+
+		inline Iterator begin() 
+		{ 
+			return Iterator(Buffer()); 
+		}
+
+		inline Iterator end()
+		{ 
+			return Iterator(Buffer() + m_Size); 
+		}
+
+		inline ConstIterator begin() const 
+		{
+			return ConstIterator(Buffer()); 
+		}
+
+		inline ConstIterator end() const 
+		{ 
+			return ConstIterator(Buffer() + m_Size); 
+		}
+
+		inline Iterator Begin() 
+		{ 
+			return Iterator(Buffer()); 
+		}
+
+		inline Iterator End() 
+		{ 
+			return Iterator(Buffer() + m_Size); 
+		}
+
+		inline ConstIterator Begin() const 
+		{
+			return ConstIterator(Buffer());
+		}
+
+		inline ConstIterator End() const 
+		{
+			return ConstIterator(Buffer() + m_Size);
+		}
+
+		inline T& Front() 
+		{
+			assert(m_pBuffer); 
+			return *Buffer();
+		}
+
+		inline const T& Front() const 
+		{ 
+			assert(m_pBuffer);
+			return *Buffer();
+		}
+
+		inline T& Back() 
+		{
+			assert(m_Size > 0); 
+			return *(Buffer() + m_Size - 1);
+		}
+
+		inline const T& Back() const 
+		{
+			assert(m_Size > 0); 
+			return *(Buffer() + m_Size - 1); 
+		}
 
 		constexpr static size_t MaxSize() { return ~(size_t)0; }
 
@@ -348,7 +476,10 @@ namespace FluxStd
 			return newSize == m_Capacity ? newSize + 1 : newSize;
 		}
 
-		inline T* Buffer() const { return reinterpret_cast<T*>(m_pBuffer); }
+		inline T* Buffer() const noexcept
+		{
+			return reinterpret_cast<T*>(m_pBuffer);
+		}
 
 		inline unsigned char* Allocate(const size_t size)
 		{
@@ -364,14 +495,18 @@ namespace FluxStd
 		void ConstructElements(T* pDestination, const T* pSource, const size_t count)
 		{
 			for (unsigned i = 0; i < count; ++i)
+			{
 				new(pDestination + i) T(pSource[i]);
+			}
 		}
 
 		//Call empty constructor on elements
 		inline void ConstructElements(T* pDestination, const size_t count)
 		{
 			for (unsigned i = 0; i < count; ++i)
+			{
 				new(pDestination + i) T();
+			}
 		}
 
 		//Call destructor on elements
@@ -388,7 +523,9 @@ namespace FluxStd
 		inline void MoveRange(const size_t dest, const size_t src, const size_t count)
 		{
 			if (count)
+			{
 				memmove(Buffer() + dest, Buffer() + src, count * sizeof(T));
+			}
 		}
 
 		unsigned char* m_pBuffer;
