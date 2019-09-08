@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="CoolString">
+    <DisplayString Condition="m_Allocator.m_Size &gt; 16">{(char*)m_Allocator.pPtr}</DisplayString>
+    <DisplayString>{(char*)m_Allocator.Buffer}</DisplayString>
+		<Expand>
+			<Item Name="Elements" ExcludeView="simple">m_Size</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="InlineAllocator&lt;*&gt;">
+		<DisplayString Condition="m_Size == 0">Unallocated: {m_Size} bytes</DisplayString>
+		<DisplayString Condition="m_Size &gt; $T1">Dynamic Memory: {m_Size} bytes</DisplayString>
+		<DisplayString Condition="m_Size &lt;= $T1">Inline Memory: {m_Size} bytes</DisplayString>
+	</Type>
+</AutoVisualizer>

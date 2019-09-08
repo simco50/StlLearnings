@@ -8,6 +8,8 @@ using namespace std;
 #include <stdlib.h>  
 #include <crtdbg.h>  
 
+#include "Std/String.h"
+
 int main(int argc, char* argv[])
 {
 	// Enable run-time memory leak check for debug builds.
@@ -15,6 +17,7 @@ int main(int argc, char* argv[])
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(21499);
 #endif
+
 	{
 		Catch::Session session; // There must be exactly one instance
 

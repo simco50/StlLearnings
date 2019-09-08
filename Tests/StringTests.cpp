@@ -67,17 +67,6 @@ TEST_CASE("String - Constructor", "[String]")
 		REQUIRE(s.end() != nullptr);
 		REQUIRE(s.Data() != nullptr);
 	}
-	SECTION("wchar_t array")
-	{
-		String s(L"Hello world");
-		REQUIRE(!s.Empty());
-		REQUIRE(s == "Hello world");
-		REQUIRE(s.Size() == 11);
-		REQUIRE(s.Capacity() == 11);
-		REQUIRE(s.begin() != nullptr);
-		REQUIRE(s.end() != nullptr);
-		REQUIRE(s.Data() != nullptr);
-	}
 	SECTION("begin/end")
 	{
 		char test[] = "Hello world";
@@ -92,7 +81,7 @@ TEST_CASE("String - Constructor", "[String]")
 	}
 	SECTION("Move semantics")
 	{
-		String s1(L"Hello world");
+		String s1("Hello world");
 		REQUIRE(!s1.Empty());
 		REQUIRE(s1 == "Hello world");
 		REQUIRE(s1.Size() == 11);
@@ -120,7 +109,7 @@ TEST_CASE("String - Constructor", "[String]")
 	}
 	SECTION("Deep copy")
 	{
-		String s1(L"Hello world");
+		String s1("Hello world");
 		REQUIRE(!s1.Empty());
 		REQUIRE(s1 == "Hello world");
 		REQUIRE(s1.Size() == 11);
@@ -158,7 +147,7 @@ TEST_CASE("String - Assignment", "[String]")
 {
 	SECTION("Deep copy")
 	{
-		String s1(L"Hello world");
+		String s1("Hello world");
 		REQUIRE(!s1.Empty());
 		REQUIRE(s1 == "Hello world");
 		REQUIRE(s1.Size() == 11);
@@ -202,13 +191,10 @@ TEST_CASE("String - Assignment", "[String]")
 		REQUIRE(s1.end() == nullptr);
 		REQUIRE(s1.Data() == nullptr);
 
-		REQUIRE(!s2.Empty());
-		REQUIRE(s2 == "Hello World");
-		REQUIRE(s2.Size() == 11);
+		REQUIRE(s2.Empty());
+		REQUIRE(s2 == "");
+		REQUIRE(s2.Size() == 0);
 		REQUIRE(s2.Capacity() == 11);
-		REQUIRE(s2.begin() != nullptr);
-		REQUIRE(s2.end() != nullptr);
-		REQUIRE(s2.Data() != nullptr);
 
 		REQUIRE(s1.Data() != s2.Data());
 	}
@@ -291,15 +277,6 @@ TEST_CASE("String - Operator== & Operator!=", "[String]")
 
 		REQUIRE(!(s1 == "HeLlo"));
 		REQUIRE(!(s1 != "Hello"));
-	}
-	SECTION("wchar_t array")
-	{
-		String s1("Hello");
-		REQUIRE(s1 != L"HeLlo");
-		REQUIRE(s1 == L"Hello");
-
-		REQUIRE(!(s1 == L"HeLlo"));
-		REQUIRE(!(s1 != L"Hello"));
 	}
 }
 

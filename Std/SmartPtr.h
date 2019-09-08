@@ -174,11 +174,40 @@ namespace FluxStd
 			}
 		}
 
-		WeakPtr(WeakPtr&& other) :
-			RefCounted(other.m_pPtr, other.m_pRefCount)
+		WeakPtr(const WeakPtr& other)
+			: RefCount(other.m_pPtr, other.m_pRefCount)
+		{
+			if (m_pRefCount)
+			{
+				m_pRefCount->IncWeakRef();
+			}
+		}
+
+		WeakPtr(WeakPtr&& other) noexcept
+			: RefCounted(other.m_pPtr, other.m_pRefCount)
 		{
 			other.m_pPtr = nullptr;
 			other.m_pRefCount = nullptr;
+		}
+
+		WeakPtr& operator=(const WeakPtr& other)
+		{
+			m_pPtr = other.m_pPtr;
+			m_pRefCount = other.m_pRefCount;
+			if (m_pRefCount)
+			{
+				m_pRefCount->IncWeakRef();
+			}
+			return *this;
+		}
+
+		WeakPtr& operator=(WeakPtr&& other)
+		{
+			m_pPtr = other.m_pPtr;
+			other.m_pPtr = nullptr;
+			m_pRefCount = other.m_pRefCount;
+			other.m_pRefCount = nullptr;
+			return *this;
 		}
 
 		~WeakPtr()
@@ -405,6 +434,8 @@ namespace FluxStd
 			: UniquePtrBase(nullptr)
 		{
 		}
+
+		~UniquePtr() = default;
 
 		UniquePtr(T* pPtr) noexcept
 			: UniquePtrBase(pPtr)
