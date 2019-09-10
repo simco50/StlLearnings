@@ -500,7 +500,7 @@ TEST_CASE("Vector - PoD - Assign multiple", "[Vector]")
 TEST_CASE("Vector - PoD - SwapEraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
-	v1.SwapEraseAt(2);
+	v1.RemoveSwapAt(2);
 	REQUIRE(v1.Size() == 4);
 	REQUIRE(v1[0] == 1);
 	REQUIRE(v1[1] == 2);
@@ -511,7 +511,7 @@ TEST_CASE("Vector - PoD - SwapEraseAt", "[Vector]")
 TEST_CASE("Vector - PoD - EraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
-	v1.EraseAt(2);
+	v1.RemoveAt(2);
 	REQUIRE(v1.Size() == 4);
 	REQUIRE(v1[0] == 1);
 	REQUIRE(v1[1] == 2);
@@ -593,13 +593,13 @@ TEST_CASE("Vector - PoD - Find", "[Vector]")
 	SECTION("Non-Empty")
 	{
 		Vector<TestType> v1 = { 1, 2, 3, 4, 5, 4 };
-		REQUIRE(v1.Find(4) != v1.end());
-		REQUIRE(v1.Find(12) == v1.end());
+		REQUIRE(v1.Find(4) != nullptr);
+		REQUIRE(v1.Find(12) == nullptr);
 	}
 	SECTION("Non-Empty")
 	{
 		Vector<TestType> v1;
-		REQUIRE(v1.Find(12) == v1.end());
+		REQUIRE(v1.Find(12) ==  nullptr);
 	}
 }
 

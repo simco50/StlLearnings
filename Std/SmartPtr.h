@@ -94,7 +94,7 @@ namespace FluxStd
 		}
 
 	private:
-		T * m_pPtr;
+		T* m_pPtr;
 	};
 
 	template<typename T>

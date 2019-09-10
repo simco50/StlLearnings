@@ -2,7 +2,6 @@
 #include <initializer_list>
 #include <assert.h>
 #include "Iterator.h"
-#include "Algorithm.h"
 #include "Utility.h"
 
 namespace FluxStd
@@ -13,28 +12,29 @@ namespace FluxStd
 	public:
 		using Iterator = RandomAccessIterator<T>;
 		using ConstIterator = RandomAccessConstIterator<T>;
+		using SizeType = size_t;
 
 	public:
 		Vector() noexcept
 			: m_pBuffer(nullptr), m_Size(0), m_Capacity(0)
 		{}
-		Vector(const size_t size)
+		explicit Vector(const SizeType size)
 			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), size);
 		}
 
-		Vector(const size_t size, const T& value)
+		Vector(const SizeType size, const T& value)
 			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), size);
-			for (size_t i = 0; i < size; ++i)
+			for (SizeType i = 0; i < size; ++i)
 			{
 				Buffer()[i] = value;
 			}
 		}
 
-		Vector(T* pData, const size_t size)
+		Vector(T* pData, const SizeType size)
 			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), pData, size);
@@ -47,7 +47,7 @@ namespace FluxStd
 		}
 
 		//Move semantics
-		Vector(Vector&& other)
+		Vector(Vector&& other) noexcept
 			: m_pBuffer(other.m_pBuffer), m_Size(other.m_Size), m_Capacity(other.m_Capacity)
 		{
 			other.m_Size = 0;
@@ -73,7 +73,7 @@ namespace FluxStd
 		}
 
 		//Deep copy
-		Vector& operator=(const Vector<T>& other)
+		Vector& operator=(const Vector& other)
 		{
 			if (m_pBuffer)
 			{
@@ -81,7 +81,6 @@ namespace FluxStd
 				if (m_Capacity != other.m_Capacity)
 				{
 					Free(m_pBuffer);
-					m_pBuffer = nullptr;
 				}
 			}
 			if (m_pBuffer == nullptr && other.m_Capacity > 0)
@@ -96,7 +95,7 @@ namespace FluxStd
 		}
 
 		//Move operation
-		Vector& operator=(Vector<T>&& other)
+		Vector& operator=(Vector&& other)
 		{
 			FluxStd::Swap(m_Size, other.m_Size);
 			FluxStd::Swap(m_Capacity, other.m_Capacity);
@@ -113,16 +112,15 @@ namespace FluxStd
 			{
 				m_Capacity = 0;
 				Free(m_pBuffer);
-				m_pBuffer = nullptr;
 			}
 		}
 
-		void Resize(const size_t size)
+		void Resize(const SizeType size)
 		{
 			if (m_pBuffer)
 			{
 				unsigned char* pNewBuffer = Allocate(size);
-				size_t copyWidth = size > m_Size ? m_Size : size;
+				SizeType copyWidth = size > m_Size ? m_Size : size;
 				memcpy(pNewBuffer, m_pBuffer, sizeof(T) * copyWidth);
 				//Shrinking
 				if (size < m_Size)
@@ -148,15 +146,14 @@ namespace FluxStd
 			m_Capacity = size;
 		}
 
-		void Reserve(const size_t size)
+		void Reserve(const SizeType size)
 		{
 			if (size > m_Capacity)
 			{
-
 				if (m_pBuffer != nullptr)
 				{
 					unsigned char* pNewBuffer = Allocate(size);
-					size_t copyWidth = size > m_Size ? m_Size : size;
+					SizeType copyWidth = size > m_Size ? m_Size : size;
 					memcpy(pNewBuffer, m_pBuffer, sizeof(T) * copyWidth);
 					Free(m_pBuffer);
 					m_pBuffer = pNewBuffer;
@@ -199,6 +196,34 @@ namespace FluxStd
 			++m_Size;
 		}
 
+		void PushUnique(const T& value)
+		{
+			if (!Find(value))
+			{
+				Push(value);
+			}
+		}
+
+		void PushUnique(T&& value)
+		{
+			if (!Find(value))
+			{
+				Push(std::forward<T>(value));
+			}
+		}
+
+		void Append(const T* pOther, SizeType count)
+		{
+			Reserve(m_Size + count);
+			ConstructElements(Buffer() + m_Size, pOther, count);
+			m_Size += count;
+		}
+
+		void Append(const Vector& other)
+		{
+			Append(other.Data(), other.Size());
+		}
+
 		//Generally better way to add to an array because the object gets created in the method itself by forwarding the arguments
 		template<typename... Args>
 		void Emplace(Args&&... args)
@@ -227,37 +252,116 @@ namespace FluxStd
 			FluxStd::Swap(m_Capacity, other.m_Capacity);
 		}
 
-		void Assign(const size_t amount, const T& value)
+		void Assign(const SizeType amount, const T& value)
 		{
 			if (m_Size + amount > m_Capacity)
 			{
 				Reserve(m_Size + amount);
 			}
-			for (size_t i = 0; i < amount; ++i)
+			for (SizeType i = 0; i < amount; ++i)
 			{
 				ConstructElements(Buffer() + m_Size + i, &value, 1);
 			}
 			m_Size += amount;
 		}
 
-		void SwapEraseAt(const size_t index)
+		bool Remove(const T& value)
 		{
-			assert(index < m_Size);
+			SizeType i = IndexOf(value);
+			if (i != MaxSize())
+			{
+				RemoveAt(i);
+				return true;
+			}
+			return false;
+		}
+
+		bool RemoveSwap(const T& value)
+		{
+			SizeType i = IndexOf(value);
+			if (i != MaxSize())
+			{
+				FluxStd::Swap(Buffer()[i], Buffer()[m_Size - 1]);
+				--m_Size;
+				return true;
+			}
+			return false;
+		}
+
+		void RemoveAll(const T& value)
+		{
+			for(;;)
+			{
+				if (!Remove(value))
+				{
+					return;
+				}
+			}
+		}
+
+		void RemoveAllSwap(const T& value)
+		{
+			for (;;)
+			{
+				if (!RemoveSwap(value))
+				{
+					return;
+				}
+			}
+		}
+
+		template<typename Predicate>
+		bool RemoveByPredicate(Predicate&& predicate)
+		{
+			for (;;)
+			{
+				SizeType i = IndexOfByPredicate(predicate);
+				if (i != MaxSize())
+				{
+					RemoveAt(i);
+				}
+				else
+				{
+					return;
+				}
+			}
+		}
+
+		template<typename Predicate>
+		bool RemoveSwapByPredicate(Predicate&& predicate)
+		{
+			for (;;)
+			{
+				SizeType i = IndexOfByPredicate(predicate);
+				if (i != MaxSize())
+				{
+					RemoveSwapAt(i);
+				}
+				else
+				{
+					return;
+				}
+			}
+		}
+
+		void RemoveSwapAt(const SizeType index)
+		{
+			assert(IsValidIndex(index));
 			FluxStd::Swap(Buffer()[index], Back());
 			DestructElements(Buffer() + m_Size - 1, 1);
 			--m_Size;
 		}
 
-		Iterator EraseAt(const size_t index)
+		Iterator RemoveAt(const SizeType index)
 		{
-			assert(index < m_Size);
+			assert(IsValidIndex(index));
 			DestructElements(Buffer() + index, 1);
 			MoveRange(index, index + 1, m_Size - index - 1);
 			--m_Size;
 			return Iterator(Buffer() + index);
 		}
 
-		Iterator Insert(const size_t index, const T& value)
+		Iterator Insert(const SizeType index, const T& value)
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
@@ -271,7 +375,7 @@ namespace FluxStd
 			return Iterator(Buffer() + index);
 		}
 
-		Iterator Insert(const size_t index, T&& value)
+		Iterator Insert(const SizeType index, T&& value)
 		{
 			assert(index <= m_Size);
 			if (m_Size == m_Capacity)
@@ -285,32 +389,87 @@ namespace FluxStd
 			return Iterator(Buffer() + index);
 		}
 
-		ConstIterator Find(const T& value) const
+		T* Find(const T& value)
 		{
-			ConstIterator pIt = Begin();
-			while (pIt != End() && *pIt != value)
+			for (Iterator it = begin(); it != end(); ++it)
 			{
-				++pIt;
+				if (*it == value)
+				{
+					return it.pPtr;
+				}
 			}
-			return pIt;
+			return nullptr;
 		}
 
-		Iterator Find(const T& value)
+		const T* Find(const T& value) const
 		{
-			Iterator pIt = Begin();
-			while (pIt != End() && *pIt != value)
+			for (ConstIterator it = begin(); it != end(); ++it)
 			{
-				++pIt;
+				if (*it == value)
+				{
+					return it.pPtr;
+				}
 			}
-			return pIt;
+			return nullptr;
+		}
+
+		SizeType IndexOf(const T& value) const
+		{
+			for (SizeType i = 0; i < m_Size; ++i)
+			{
+				if (Data()[i] == value)
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		template<typename Predicate>
+		SizeType IndexOfByPredicate(Predicate&& predicate) const
+		{
+			for (SizeType i = 0; i < m_Size; ++i)
+			{
+				if (predicate(Data()[i]))
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		template<typename Predicate>
+		T* FindByPredicate(Predicate&& predicate)
+		{
+			for (Iterator it = begin(); it != end(); ++it)
+			{
+				if (predicate(*it))
+				{
+					return it.pPtr;
+				}
+			}
+			return nullptr;
+		}
+
+		template<typename Predicate>
+		const T* FindByPredicate(Predicate&& predicate) const
+		{
+			for (ConstIterator it = begin(); it != end(); ++it)
+			{
+				if (predicate(*it))
+				{
+					return it.pPtr;
+				}
+			}
+			return nullptr;
 		}
 
 		//Very simple shuffle
 		void Shuffle()
 		{
-			for (size_t i = 0; i < m_Size; ++i)
+			for (SizeType i = 0; i < m_Size; ++i)
 			{
-				size_t j = rand() % m_Size;
+				SizeType j = rand() % m_Size;
 				FluxStd::Swap(m_pBuffer[i], m_pBuffer[j]);
 			}
 		}
@@ -321,7 +480,7 @@ namespace FluxStd
 			{
 				return false;
 			}
-			for (size_t i = 0; i < m_Size; ++i)
+			for (SizeType i = 0; i < m_Size; ++i)
 			{
 				if (Buffer()[i] != other.Buffer()[i])
 				{
@@ -337,7 +496,7 @@ namespace FluxStd
 			{
 				return true;
 			}
-			for (size_t i = 0; i < m_Size; ++i)
+			for (SizeType i = 0; i < m_Size; ++i)
 			{
 				if (Buffer()[i] != other.Buffer()[i])
 				{
@@ -347,35 +506,46 @@ namespace FluxStd
 			return false;
 		}
 
+		inline Vector& operator+=(const Vector& other)
+		{
+			Append(other);
+			return *this;
+		}
+
 		inline operator bool() const noexcept
 		{
 			return m_Size > 0;
 		}
 
 		//Non-const. No assert random access
-		inline T& operator[](const size_t index)
+		inline T& operator[](const SizeType index)
 		{
 			return Buffer()[index];
 		}
 
 		//Const.No assert random access
-		inline const T& operator[](const size_t index) const
+		inline const T& operator[](const SizeType index) const
 		{
 			return Buffer()[index];
 		}
 
 		//Non-const. Assert random access
-		T& At(const size_t index)
+		T& At(const SizeType index)
 		{
-			assert(index < m_Size);
+			assert(IsValidIndex(index));
 			return Buffer()[index];
 		}
 
 		//Const. Assert random access
-		const T& At(const size_t index) const
+		const T& At(const SizeType index) const
 		{
-			assert(index < m_Size);
+			assert(IsValidIndex(index));
 			return Buffer()[index];
+		}
+
+		inline bool IsValidIndex(const SizeType index) const
+		{
+			return index < m_Size;
 		}
 
 		inline const T* Data() const 
@@ -388,12 +558,12 @@ namespace FluxStd
 			return Buffer();
 		}
 
-		inline size_t Size() const 
+		inline SizeType Size() const 
 		{
 			return m_Size; 
 		}
 
-		inline size_t Capacity() const 
+		inline SizeType Capacity() const 
 		{ 
 			return m_Capacity; 
 		}
@@ -405,22 +575,22 @@ namespace FluxStd
 
 		inline Iterator begin() 
 		{ 
-			return Iterator(Buffer()); 
+			return Iterator(Data()); 
 		}
 
 		inline Iterator end()
 		{ 
-			return Iterator(Buffer() + m_Size); 
+			return Iterator(Data() + m_Size);
 		}
 
 		inline ConstIterator begin() const 
 		{
-			return ConstIterator(Buffer()); 
+			return ConstIterator(Data());
 		}
 
 		inline ConstIterator end() const 
 		{ 
-			return ConstIterator(Buffer() + m_Size); 
+			return ConstIterator(Data() + m_Size);
 		}
 
 		inline Iterator Begin() 
@@ -467,12 +637,12 @@ namespace FluxStd
 			return *(Buffer() + m_Size - 1); 
 		}
 
-		constexpr static size_t MaxSize() { return ~(size_t)0; }
+		constexpr static SizeType MaxSize() { return ~(SizeType)0; }
 
 	private:
-		inline size_t CalculateGrowth(const size_t oldSize)
+		inline SizeType CalculateGrowth(const SizeType oldSize)
 		{
-			size_t newSize = (size_t)floor(oldSize * 1.5);
+			SizeType newSize = (SizeType)floor(oldSize * 1.5);
 			return newSize == m_Capacity ? newSize + 1 : newSize;
 		}
 
@@ -481,7 +651,7 @@ namespace FluxStd
 			return reinterpret_cast<T*>(m_pBuffer);
 		}
 
-		inline unsigned char* Allocate(const size_t size)
+		inline unsigned char* Allocate(const SizeType size)
 		{
 			return new unsigned char[sizeof(T) * size];
 		}
@@ -489,10 +659,11 @@ namespace FluxStd
 		inline void Free(unsigned char* pBuffer)
 		{
 			delete[] pBuffer;
+			m_pBuffer = nullptr;
 		}
 
 		//Call constructor on elements with source data
-		void ConstructElements(T* pDestination, const T* pSource, const size_t count)
+		void ConstructElements(T* pDestination, const T* pSource, const SizeType count)
 		{
 			for (unsigned i = 0; i < count; ++i)
 			{
@@ -501,7 +672,7 @@ namespace FluxStd
 		}
 
 		//Call empty constructor on elements
-		inline void ConstructElements(T* pDestination, const size_t count)
+		inline void ConstructElements(T* pDestination, const SizeType count)
 		{
 			for (unsigned i = 0; i < count; ++i)
 			{
@@ -510,7 +681,7 @@ namespace FluxStd
 		}
 
 		//Call destructor on elements
-		void DestructElements(T* pDestination, size_t count)
+		void DestructElements(T* pDestination, SizeType count)
 		{
 			while (count--)
 			{
@@ -520,7 +691,7 @@ namespace FluxStd
 		}
 
 		//Move elements
-		inline void MoveRange(const size_t dest, const size_t src, const size_t count)
+		inline void MoveRange(const SizeType dest, const SizeType src, const SizeType count)
 		{
 			if (count)
 			{
@@ -529,8 +700,8 @@ namespace FluxStd
 		}
 
 		unsigned char* m_pBuffer;
-		size_t m_Size;
-		size_t m_Capacity;
+		SizeType m_Size;
+		SizeType m_Capacity;
 	};
 
 	template<typename T>

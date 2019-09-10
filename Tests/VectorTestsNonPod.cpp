@@ -2,35 +2,64 @@
 #include "../Std/Vector.h"
 using namespace FluxStd;
 
+int gConstructions = 0;
+int gDesctructions = 0;
+int gCopies = 0;
+int gMoves = 0;
+
 struct TestType
 {
-	TestType(const int value = 0) : Value(new int(value)) {}
-	TestType(const size_t value) : Value(new int((int)value)) {}
-	TestType(TestType&& other) : Value(other.Value) { other.Value = nullptr; }
-	~TestType() { if(Value) delete Value; }
-	TestType(const TestType& other) : Value(new int(*other.Value)) {}
+	TestType(const int value = 0)
+	{
+		int Count = rand() % 5 + 1;
+		Value = new int[Count];
+		for (int i = 0; i < Count; ++i)
+		{
+			Value[i] = value;
+		}
+		++gConstructions;
+	}
+
+	TestType(TestType&& other) noexcept
+		: Value(other.Value) 
+	{ 
+		++gMoves;
+		other.Value = nullptr;
+	}
+	~TestType() 
+	{ 
+		if (Value)
+		{
+			++gDesctructions;
+			delete[] Value;
+		}
+	}
+	TestType(const TestType& other) : Value(new int(*other.Value)) 
+	{
+		++gCopies;
+	}
 	TestType& operator=(const TestType& other)
 	{
 		if (Value)
-			delete Value;
+			delete[] Value;
 		Value = new int(*other.Value);
 		return *this;
 	}
-	TestType& operator=(TestType&& other)
+	TestType& operator=(TestType&& other) noexcept
 	{
 		if (Value)
-			delete Value;
+			delete[] Value;
 		Value = other.Value;
 		other.Value = nullptr;
 		return *this;
 	}
-	bool operator==(const int value) const { return *Value == value; }
-	bool operator==(const TestType& other) const { return *Value == *other.Value; }
-	bool operator!=(const TestType& other) const { return *Value != *other.Value; }
+	bool operator==(const int value) const { return Value[0] == value; }
+	bool operator==(const TestType& other) const { return Value[0] == *other.Value; }
+	bool operator!=(const TestType& other) const { return Value[0] != *other.Value; }
 	operator int() const { return *Value; }
-	operator size_t() const { return (size_t)*Value; }
 
 	int* Value = nullptr;
+
 };
 
 #pragma region Constructors
@@ -116,7 +145,7 @@ TEST_CASE("Vector - NonPoD - Constructor", "[Vector]")
 		REQUIRE(v.end() != nullptr);
 		REQUIRE(v.begin() != v.end());
 
-		for (size_t i = 0; i < v.Size(); ++i)
+		for (int i = 0; i < (int)v.Size(); ++i)
 		{
 			REQUIRE(v.Data()[i] == (TestType)i);
 			REQUIRE(v[i] == (TestType)i);
@@ -443,7 +472,7 @@ TEST_CASE("Vector - NonPoD - Pop", "[Vector]")
 	SECTION("Non-empty")
 	{
 		Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
-		for (size_t i = v1.Size() - 1; i > 0; --i)
+		for (int i = (int)v1.Size() - 1; i > 0; --i)
 		{
 			REQUIRE(v1.Size() == i + 1);
 			REQUIRE(v1.Pop() == (TestType)(i + 1));
@@ -529,7 +558,7 @@ TEST_CASE("Vector - NonPoD - Assign multiple", "[Vector]")
 TEST_CASE("Vector - NonPoD - SwapEraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
-	v1.SwapEraseAt(2);
+	v1.RemoveSwapAt(2);
 	REQUIRE(v1.Size() == 4);
 	REQUIRE(v1[0] == 1);
 	REQUIRE(v1[1] == 2);
@@ -540,7 +569,7 @@ TEST_CASE("Vector - NonPoD - SwapEraseAt", "[Vector]")
 TEST_CASE("Vector - NonPoD - EraseAt", "[Vector]")
 {
 	Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
-	v1.EraseAt(2);
+	v1.RemoveAt(2);
 	REQUIRE(v1.Size() == 4);
 	REQUIRE(v1[0] == 1);
 	REQUIRE(v1[1] == 2);
@@ -622,13 +651,13 @@ TEST_CASE("Vector - NonPoD - Find", "[Vector]")
 	SECTION("Non-Empty")
 	{
 		Vector<TestType> v1 = { 1, 2, 3, 4, 5, 4 };
-		REQUIRE(v1.Find(4) != v1.end());
-		REQUIRE(v1.Find(12) == v1.end());
+		REQUIRE(v1.Find(4) != nullptr);
+		REQUIRE(v1.Find(12) == nullptr);
 	}
 	SECTION("Non-Empty")
 	{
 		Vector<TestType> v1;
-		REQUIRE(v1.Find(12) == v1.end());
+		REQUIRE(v1.Find(12) == nullptr);
 	}
 }
 
