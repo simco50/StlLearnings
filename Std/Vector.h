@@ -34,7 +34,7 @@ namespace FluxStd
 			}
 		}
 
-		Vector(T* pData, const SizeType size)
+		Vector(const T* pData, const SizeType size)
 			: m_pBuffer(Allocate(size)), m_Size(size), m_Capacity(size)
 		{
 			ConstructElements(Buffer(), pData, size);
@@ -250,6 +250,13 @@ namespace FluxStd
 			FluxStd::Swap(m_pBuffer, other.m_pBuffer);
 			FluxStd::Swap(m_Size, other.m_Size);
 			FluxStd::Swap(m_Capacity, other.m_Capacity);
+		}
+
+		void Swap(SizeType a, SizeType b)
+		{
+			assert(a < Size());
+			assert(b < Size());
+			FluxStd::Swap(Data()[a], Data()[b]);
 		}
 
 		void Assign(const SizeType amount, const T& value)
@@ -637,6 +644,15 @@ namespace FluxStd
 			return *(Buffer() + m_Size - 1); 
 		}
 
+		//Move elements
+		inline void MoveRange(const SizeType dest, const SizeType src, const SizeType count)
+		{
+			if (count)
+			{
+				memmove(Buffer() + dest, Buffer() + src, count * sizeof(T));
+			}
+		}
+
 		constexpr static SizeType MaxSize() { return ~(SizeType)0; }
 
 	private:
@@ -687,15 +703,6 @@ namespace FluxStd
 			{
 				pDestination->~T();
 				++pDestination;
-			}
-		}
-
-		//Move elements
-		inline void MoveRange(const SizeType dest, const SizeType src, const SizeType count)
-		{
-			if (count)
-			{
-				memmove(Buffer() + dest, Buffer() + src, count * sizeof(T));
 			}
 		}
 
