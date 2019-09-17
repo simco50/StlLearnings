@@ -474,7 +474,7 @@ TEST_CASE("Vector - NonPoD - Pop", "[Vector]")
 		Vector<TestType> v1 = { 1, 2, 3, 4, 5 };
 		for (int i = (int)v1.Size() - 1; i > 0; --i)
 		{
-			REQUIRE(v1.Size() == i + 1);
+			REQUIRE(v1.Size() == (size_t)(i + 1));
 			REQUIRE(v1.Pop() == (TestType)(i + 1));
 		}
 	}
