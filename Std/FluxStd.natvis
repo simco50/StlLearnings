@@ -36,28 +36,48 @@
 
 	<!--HashMap-->
 	<Type Name="FluxStd::HashMap&lt;*&gt;">
-		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
-		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
-		<DisplayString>Size = {m_Size}</DisplayString>
+		<DisplayString Condition="m_Set.m_Size == 0">Empty</DisplayString>
+		<DisplayString Condition="m_Set.m_Size &lt; 0">Invalid</DisplayString>
+		<DisplayString>Size = {m_Set.m_Size}</DisplayString>
 		<Expand>
-			<Item Name="[Buckets]" ExcludeView="simple">m_BucketCount</Item>
-			<Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+			<Item Name="[Buckets]" ExcludeView="simple">m_Set.m_BucketCount</Item>
+			<Item Name="[Size]" ExcludeView="simple">m_Set.m_Size</Item>
 			<LinkedListItems>
-				<Size>m_Size</Size>
-				<HeadPointer>m_pHead</HeadPointer>
+				<Size>m_Set.m_Size</Size>
+				<HeadPointer>m_Set.m_pHead</HeadPointer>
 				<NextPointer>pNext</NextPointer>
-				<ValueNode>this</ValueNode>
+				<ValueNode>this->Value</ValueNode>
 			</LinkedListItems>
 		</Expand>
 	</Type>
-	<Type Name="FluxStd::HashMap&lt;*&gt;::Node">
-		<Expand>
-			<Item Name="[Key]" ExcludeView="simple">Pair.Key</Item>
-			<Item Name="[Value]" ExcludeView="simple">Pair.Value</Item>
-		</Expand>
-	</Type>
-	
-	<!--Map-->
+
+  <!--HashSet-->
+  <Type Name="FluxStd::HashSet&lt;*&gt;">
+    <DisplayString Condition="m_Size == 0">Empty</DisplayString>
+    <DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>
+    <DisplayString>Size = {m_Size}</DisplayString>
+    <Expand>
+      <Item Name="[Buckets]" ExcludeView="simple">m_BucketCount</Item>
+      <Item Name="[Size]" ExcludeView="simple">m_Size</Item>
+      <LinkedListItems>
+        <Size>m_Size</Size>
+        <HeadPointer>m_pHead</HeadPointer>
+        <NextPointer>pNext</NextPointer>
+        <ValueNode>this->Value</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+
+  <!--KeyValuePair-->
+  <Type Name="FluxStd::KeyValuePair&lt;*&gt;">
+    <DisplayString>{Key}: {Value}</DisplayString>
+    <Expand>
+      <Item Name="[Key]" ExcludeView="simple">Key</Item>
+      <Item Name="[Value]" ExcludeView="simple">Value</Item>
+    </Expand>
+  </Type>
+
+  <!--Map-->
 	<Type Name="FluxStd::Map&lt;*&gt;">
 		<DisplayString Condition="m_Size == 0">Empty</DisplayString>
 		<DisplayString Condition="m_Size &lt; 0">Invalid</DisplayString>

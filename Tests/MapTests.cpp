@@ -1,5 +1,6 @@
 #include "../catch.hpp"
 #include "../Std/Map.h"
+#include "../Std/HashSet.h"
 
 using namespace FluxStd;
 using namespace std;
