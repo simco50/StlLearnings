@@ -25,28 +25,28 @@ namespace FluxStd
 			int Color = RED;
 			KeyValuePair<K, V> Pair;
 
-			Node(const K& key) :
-				Pair(key)
+			Node(const K& key) 
+				: Pair(key)
 			{}
 
-			Node(const K& key, const V& value) :
-				Pair(key, value)
+			Node(const K& key, const V& value) 
+				: Pair(key, value)
 			{}
 
-			Node(const K& key, V&& value) :
-				Pair(key, Forward<V>(value))
+			Node(const K& key, V&& value) 
+				: Pair(key, Forward<V>(value))
 			{}
 		};
 
 	public:
 		struct Iterator
 		{
-			Iterator(Node* pNode) :
-				pNode(pNode)
+			Iterator(Node* pNode)
+				: pNode(pNode)
 			{}
 
-			Iterator(const Iterator& other) :
-				pNode(other.pNode)
+			Iterator(const Iterator& other) 
+				: pNode(other.pNode)
 			{
 			}
 
@@ -59,7 +59,9 @@ namespace FluxStd
 			Iterator& operator++()
 			{
 				if (pNode)
+				{
 					pNode = pNode->pNext;
+				}
 				return *this;
 			}
 
@@ -67,14 +69,18 @@ namespace FluxStd
 			{
 				Iterator* pIt = this;
 				if (pNode)
+				{
 					pNode = pNode->pNext;
+				}
 				return pIt;
 			}
 
 			Iterator& operator--()
 			{
 				if (pNode)
+				{
 					pNode = pNode->pPrev;
+				}
 				return *this;
 			}
 
@@ -82,7 +88,9 @@ namespace FluxStd
 			{
 				Iterator* pIt = this;
 				if (pNode)
+				{
 					pNode = pNode->pPrev;
+				}
 				return pIt;
 			}
 
@@ -115,7 +123,9 @@ namespace FluxStd
 			ConstIterator& operator++()
 			{
 				if (pNode)
+				{
 					pNode = pNode->pNext;
+				}
 				return *this;
 			}
 
@@ -123,14 +133,18 @@ namespace FluxStd
 			{
 				ConstIterator* pIt = this;
 				if (pNode)
+				{
 					pNode = pNode->pNext;
+				}
 				return pIt;
 			}
 
 			ConstIterator& operator--()
 			{
 				if (pNode)
+				{
 					pNode = pNode->pPrev;
+				}
 				return *this;
 			}
 
@@ -138,7 +152,9 @@ namespace FluxStd
 			{
 				ConstIterator* pIt = this;
 				if (pNode)
+				{
 					pNode = pNode->pPrev;
+				}
 				return pIt;
 			}
 
@@ -225,7 +241,9 @@ namespace FluxStd
 		{
 			Clear();
 			for (Node *pNode = other.MinNode(); pNode; pNode = pNode->pNext)
+			{
 				Insert_Internal(pNode->Pair.Key, pNode->Pair.Value);
+			}
 		}
 
 		void Clear() 
@@ -262,17 +280,23 @@ namespace FluxStd
 		void Insert(const Map& other)
 		{
 			for (ConstIterator pIt = other.Begin(); pIt != other.End(); ++pIt)
+			{
 				Insert_Internal(pIt->Key, pIt->Value);
+			}
 		}
 
 		Iterator Erase(const K& key)
 		{
 			Node* pNode = Find_Internal(key);
 			if (pNode == nullptr)
+			{
 				return Iterator(nullptr);
+			}
 			Iterator it = Erase_Internal(pNode);
 			if (m_Size == 0 && m_pRoot)
+			{
 				DeleteRoot();
+			}
 			return it;
 		}
 
@@ -291,15 +315,21 @@ namespace FluxStd
 		bool operator==(const Map& other) const
 		{
 			if (m_Size != other.m_Size)
+			{
 				return false;
+			}
 			if (m_pRoot == nullptr && other.m_pRoot == nullptr)
+			{
 				return true;
+			}
 			Node* pA = m_pRoot->pLeft;
 			Node* pB = other.m_pRoot->pLeft;
 			while (pA != nullptr)
 			{
 				if (pB == nullptr || pA->Pair != pB->Pair)
+				{
 					return false;
+				}
 				pA = pA->pNext;
 				pB = pB->pNext;
 			}
@@ -309,32 +339,39 @@ namespace FluxStd
 		bool operator!=(const Map& other) const
 		{
 			if (m_Size != other.m_Size)
+			{
 				return true;
+			}
 			if (m_pRoot == nullptr && other.m_pRoot == nullptr)
+			{
 				return false;
+			}
 			Node* pA = m_pRoot->pLeft;
 			Node* pB = other.m_pRoot->pLeft;
 			while (pA != nullptr)
 			{
 				if (pB == nullptr || pA->Pair != pB->Pair)
+				{
 					return true;
+				}
 				pA = pA->pNext;
 				pB = pB->pNext;
 			}
 			return false;
 		}
 
-		V& operator[](const K& key)
+		inline V& operator[](const K& key)
 		{
 			Node* pNode = Find_Internal(key);
 			if (pNode == nullptr)
+			{
 				pNode = Insert_Internal(key, V());
+			}
 			return pNode->Pair.Value;
 		}
 
-		const V& operator[](const K& key) const
+		inline const V& operator[](const K& key) const
 		{
-			assert(m_pRoot);
 			const Node* pNode = Find_Internal(key);
 			assert(pNode);
 			return pNode->Pair.Value;
@@ -343,7 +380,9 @@ namespace FluxStd
 		size_t GetDepth() const
 		{
 			if (m_pRoot == nullptr)
+			{
 				return 0;
+			}
 			size_t depth = 0;
 			GetDepth_Internal(m_pRoot, depth, 0);
 			return depth;
@@ -373,10 +412,14 @@ namespace FluxStd
 		Node * MinNode() const
 		{
 			if (m_pRoot == nullptr)
+			{
 				return nullptr;
+			}
 			Node* pNode = m_pRoot->pLeft;
 			while (pNode->pLeft != m_pNil)
+			{
 				pNode = pNode->pLeft;
+			}
 			return pNode;
 		}
 
@@ -384,10 +427,14 @@ namespace FluxStd
 		Node* MaxNode() const
 		{
 			if (m_pRoot == nullptr)
+			{
 				return nullptr;
+			}
 			Node* pNode = m_pRoot->pLeft;
 			while (pNode->pRight != m_pNil)
+			{
 				pNode = pNode->pRight;
+			}
 			return pNode;
 		}
 
@@ -412,29 +459,40 @@ namespace FluxStd
 		void GetDepth_Internal(Node *pNode, size_t &maxDepth, size_t depth) const 
 		{
 			if (pNode == m_pNil)
+			{
 				return;
+			}
 			GetDepth_Internal(pNode->pLeft, maxDepth, depth + 1);
 			GetDepth_Internal(pNode->pRight, maxDepth, depth + 1);
 
 			if (depth > maxDepth)
+			{
 				maxDepth = depth;
+			}
 		}
 
 		Node* Find_Internal(const K& key) const
 		{
 			if (m_pRoot == nullptr)
+			{
 				return nullptr;
+			}
 
-			KeyCompare compare;
 			Node* pNode = m_pRoot->pLeft;
 			while (pNode != m_pNil)
 			{
-				if (compare(key, pNode->Pair.Key))
+				if (KeyCompare{}(key, pNode->Pair.Key))
+				{
 					pNode = pNode->pLeft;
-				else if (compare(pNode->Pair.Key, key))
+				}
+				else if (KeyCompare{}(pNode->Pair.Key, key))
+				{
 					pNode = pNode->pRight;
+				}
 				else
+				{
 					return pNode;
+				}
 			}
 			return nullptr;
 		}
@@ -443,19 +501,24 @@ namespace FluxStd
 		Node* Insert_Internal(const K& key, U&& value)
 		{
 			if (m_pRoot == nullptr)
+			{
 				CreateRoot();
+			}
 
 			Node *pNewParent = m_pRoot;
 			Node *pNode = m_pRoot->pLeft;
 
-			KeyCompare compare;
 			while (pNode != m_pNil)
 			{
 				pNewParent = pNode;
-				if (compare(key, pNode->Pair.Key))
+				if (KeyCompare{}(key, pNode->Pair.Key))
+				{
 					pNode = pNode->pLeft;
-				else if (compare(pNode->Pair.Key, key))
+				}
+				else if (KeyCompare{}(pNode->Pair.Key, key))
+				{
 					pNode = pNode->pRight;
+				}
 				else
 				{
 					pNode->Pair.Value = Move(value);
@@ -470,17 +533,25 @@ namespace FluxStd
 			pNewNode->pRight = m_pNil;
 			pNewNode->pLeft = m_pNil;
 
-			if (pNewParent == m_pRoot || compare(key, pNewParent->Pair.Key))
+			if (pNewParent == m_pRoot || KeyCompare{}(key, pNewParent->Pair.Key))
+			{
 				pNewParent->pLeft = pNewNode;
+			}
 			else
+			{
 				pNewParent->pRight = pNewNode;
+			}
 
 			pNewNode->pNext = Successor(pNewNode);
 			pNewNode->pPrev = Predecessor(pNewNode);
 			if (pNewNode->pNext)
+			{
 				pNewNode->pNext->pPrev = pNewNode;
+			}
 			if (pNewNode->pPrev)
+			{
 				pNewNode->pPrev->pNext = pNewNode;
+			}
 
 			++m_Size;
 			InsertFix(pNewNode);
@@ -573,7 +644,9 @@ namespace FluxStd
 				SetColor(pTemp, BLACK);
 			}
 			else if (pRp->Color == BLACK && pRp->pParent != m_pRoot)
+			{
 				EraseFix(pSibling);
+			}
 
 			if (pRp != pNode)
 			{
@@ -582,19 +655,31 @@ namespace FluxStd
 				pRp->pParent = pNode->pParent;
 				pRp->Color = pNode->Color;
 				if (pNode->pLeft != m_pNil)
+				{
 					pNode->pLeft->pParent = pRp;
+				}
 				if (pNode->pRight != m_pNil)
+				{
 					pNode->pRight->pParent = pRp;
+				}
 
 				if (pNode == pNode->pParent->pLeft)
+				{
 					pNode->pParent->pLeft = pRp;
+				}
 				else
+				{
 					pNode->pParent->pRight = pRp;
+				}
 			}
 			if (pNode->pNext)
+			{
 				pNode->pNext->pPrev = pNode->pPrev;
+			}
 			if (pNode->pPrev)
+			{
 				pNode->pPrev->pNext = pNode->pNext;
+			}
 
 			FreeNode(pNode);
 			m_Size--;
@@ -688,7 +773,9 @@ namespace FluxStd
 		inline void DeleteRoot()
 		{
 			if (m_pRoot)
+			{
 				FreeNode(m_pRoot);
+			}
 		}
 
 		inline void RotateLeft(Node* pNode)
@@ -696,12 +783,18 @@ namespace FluxStd
 			Node* pRight = pNode->pRight;
 			pNode->pRight = pRight->pLeft;
 			if (pRight->pLeft != m_pNil)
+			{
 				pRight->pLeft->pParent = pNode;
+			}
 			pRight->pParent = pNode->pParent;
 			if (pNode == pNode->pParent->pLeft)
+			{
 				pNode->pParent->pLeft = pRight;
+			}
 			else
+			{
 				pNode->pParent->pRight = pRight;
+			}
 
 			pRight->pLeft = pNode;
 			pNode->pParent = pRight;
@@ -712,12 +805,18 @@ namespace FluxStd
 			Node* pLeft = pNode->pLeft;
 			pNode->pLeft = pLeft->pRight;
 			if (pLeft->pRight != m_pNil)
+			{
 				pLeft->pRight->pParent = pNode;
+			}
 			pLeft->pParent = pNode->pParent;
 			if (pNode == pNode->pParent->pRight)
+			{
 				pNode->pParent->pRight = pLeft;
+			}
 			else
+			{
 				pNode->pParent->pLeft = pLeft;
+			}
 			pLeft->pRight = pNode;
 			pNode->pParent = pLeft;
 		}
@@ -730,16 +829,22 @@ namespace FluxStd
 			{
 				pTemp = pTemp->pRight;
 				while (pTemp->pLeft != m_pNil)
+				{
 					pTemp = pTemp->pLeft;
+				}
 				return pTemp;
 			}
 			else
 			{
-				while (pTemp == pTemp->pParent->pRight) 
+				while (pTemp == pTemp->pParent->pRight)
+				{
 					pTemp = pTemp->pParent;
+				}
 
 				if (pTemp->pParent == m_pRoot)
+				{
 					return nullptr;
+				}
 				return pTemp->pParent;
 			}
 		}
@@ -753,16 +858,22 @@ namespace FluxStd
 			{
 				pTemp = pTemp->pLeft;
 				while (pTemp->pRight != m_pNil)
+				{
 					pTemp = pTemp->pRight;
+				}
 				return pTemp;
 			}
 			else
 			{
 				while (pTemp == pTemp->pParent->pLeft)
+				{
 					pTemp = pTemp->pParent;
+				}
 
 				if (pTemp == m_pRoot)
+				{
 					return nullptr;
+				}
 				return pTemp->pParent;
 			}
 		}

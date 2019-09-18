@@ -11,7 +11,6 @@ TEST_CASE("HashMap - Constructor", "[HashMap]")
 	{
 		HashMap<string, double> map;
 		REQUIRE(map.Size() == 0);
-		REQUIRE(map.BucketCount() == HashMap<string, double>::START_BUCKETS);
 		REQUIRE(map.Begin() == map.End());
 		REQUIRE(map.begin() == map.Begin());
 		REQUIRE(map.end() == map.End());
@@ -20,14 +19,12 @@ TEST_CASE("HashMap - Constructor", "[HashMap]")
 	{
 		HashMap<string, double> map = {};
 		REQUIRE(map.Size() == 0);
-		REQUIRE(map.BucketCount() == HashMap<string, double>::START_BUCKETS);
 		REQUIRE(map.Begin() == map.End());
 	}
 	SECTION("Initializer list constructor - Non-empty")
 	{
 		using P = KeyValuePair<string, double>;
 		HashMap<string, double> map = { P("Hello", 1.23), P("World", 2.46) };
-		REQUIRE(map.BucketCount() == HashMap<string, double>::START_BUCKETS);
 		REQUIRE(map.Size() == 2);
 		REQUIRE(map.Begin() != map.End());
 	}
@@ -44,7 +41,6 @@ TEST_CASE("HashMap - Constructor", "[HashMap]")
 			P("C++", 1.35),
 			P("C#", 2.85),
 		};
-		REQUIRE(map.BucketCount() > HashMap<string, double>::START_BUCKETS);
 		REQUIRE(map.Size() == 8);
 		REQUIRE(map.Begin() != map.End());
 	}

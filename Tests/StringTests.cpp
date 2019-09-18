@@ -52,7 +52,7 @@ TEST_CASE("String - Constructor", "[String]")
 	}
 	SECTION("begin/end")
 	{
-		char test[] = "Hello world";
+		char test[] = TEXT("Hello world");
 		String s(&test[0], &test[0] + 11);
 		REQUIRE(!s.Empty());
 		REQUIRE(s == "Hello world");
@@ -717,7 +717,7 @@ TEST_CASE("String - Replace", "[String]")
 	SECTION("Replace")
 	{
 		String s1 = "Hello World";
-		s1.Replace('o', 'a');
+		s1.ReplaceInline('o', 'a');
 		REQUIRE(s1[4] == 'a');
 		REQUIRE(s1[7] == 'a');
 	}

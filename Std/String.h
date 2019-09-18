@@ -1,28 +1,38 @@
 #pragma once
 #include <assert.h>
-#include <iostream>
+#include <cstdio>
 #include "Iterator.h"
 #include "Algorithm.h"
 #include "Utility.h"
 #include "Hash.h"
 #include "Vector.h"
 
-#define TXT(t) t
+#ifdef UNICODE
+#ifndef TEXT
+#define TEXT(t) L t
+#endif
+#else
+#ifndef TEXT
+#define TEXT(t) t
+#endif
+#endif
 
 namespace FluxStd
 {
-	template<typename CharType, typename OtherCharType, typename SizeType>
+	template<typename CharType>
 	class TString;
 
-	using String = TString<char, wchar_t, size_t>;
-	using WString = TString<wchar_t, char, size_t>;
+	using String = TString<char>;
+	using WString = TString<wchar_t>;
 
-	template<typename CharType, typename OtherCharType, typename SizeType>
+	template<typename ChrType>
 	class TString
 	{
 	public:
-		using Iterator = RandomAccessIterator<char>;
-		using ConstIterator = RandomAccessConstIterator<char>;
+		using CharType = ChrType;
+		using SizeType = size_t;
+		using Iterator = RandomAccessIterator<CharType>;
+		using ConstIterator = RandomAccessConstIterator<CharType>;
 
 	public:
 		//Empty string, no buffer
@@ -33,6 +43,13 @@ namespace FluxStd
 		TString(const CharType* pData)
 			: m_Buffer(pData, StrLen(pData) + 1)
 		{
+		}
+
+		//Create string from foreign c-string
+		template<typename OtherCharType>
+		TString(const OtherCharType* pData)
+		{
+			Append(pData);
 		}
 
 		//Create string from begin and end iterator
@@ -48,13 +65,14 @@ namespace FluxStd
 		}
 
 		//Deep copy constructor
-		explicit TString(const TString& other)
+		TString(const TString& other)
 			: m_Buffer(other.m_Buffer)
 		{
 		}
 
 		//Create string from foreign string
-		explicit TString(const TString<OtherCharType, CharType, SizeType>& other)
+		template<typename OtherCharType>
+		explicit TString(const TString<OtherCharType>& other)
 		{
 			Append(other.Data());
 		}
@@ -67,7 +85,8 @@ namespace FluxStd
 		}
 
 		//Deep copy assignment from foreign string
-		TString& operator=(const TString<OtherCharType, CharType, SizeType>& other)
+		template<typename OtherCharType>
+		TString& operator=(const TString<OtherCharType>& other)
 		{
 			Clear();
 			Append(other.Data());
@@ -109,7 +128,7 @@ namespace FluxStd
 			assert(Length() > 0);
 			CharType value = m_Buffer[m_Buffer.Size() - 2];
 			m_Buffer.Pop();
-			m_Buffer.Back() = TXT('\0');
+			m_Buffer.Back() = TEXT('\0');
 		}
 
 		void Swap(TString& other)
@@ -138,7 +157,12 @@ namespace FluxStd
 			m_Buffer.Resize(len + Length() + 1);
 			m_Buffer.MoveRange(index + len, index, previousLen - index);
 			memcpy(m_Buffer.Data() + index, pData, len);
-			m_Buffer.Back() = TXT('\0');
+			m_Buffer.Back() = TEXT('\0');
+		}
+
+		inline void Append(const TString& other)
+		{
+			Append(other.Data());
 		}
 
 		void Append(const CharType value)
@@ -150,10 +174,11 @@ namespace FluxStd
 			}
 			else
 			{
-				m_Buffer.Push(TXT('\0'));
+				m_Buffer.Push(TEXT('\0'));
 			}
 		}
 
+		template<typename OtherCharType>
 		void Append(const OtherCharType value)
 		{
 			m_Buffer.Push((CharType)value);
@@ -163,7 +188,7 @@ namespace FluxStd
 			}
 			else
 			{
-				m_Buffer.Push(TXT('\0'));
+				m_Buffer.Push(TEXT('\0'));
 			}
 		}
 
@@ -178,6 +203,7 @@ namespace FluxStd
 			}
 		}
 
+		template<typename OtherCharType>
 		void Append(const OtherCharType* pData)
 		{
 			if (pData)
@@ -189,7 +215,7 @@ namespace FluxStd
 				{
 					m_Buffer[currentSize + i] = (CharType)pData[i];
 				}
-				m_Buffer.Back() = TXT('\0');
+				m_Buffer.Back() = TEXT('\0');
 			}
 		}
 
@@ -283,12 +309,12 @@ namespace FluxStd
 			return RFind(str.Data());
 		}
 
-		SizeType Find(const CharType* c, SizeType from = String::Npos) const
+		SizeType Find(const CharType* c, SizeType from = TString::Npos) const
 		{
 			SizeType len = StrLen(c);
 			if (Length() == 0 || len == 0)
 			{
-				return String::Npos;
+				return TString::Npos;
 			}
 
 			from = from == TString::Npos ? 0 : from;
@@ -311,7 +337,7 @@ namespace FluxStd
 					}
 				}
 			}
-			return String::Npos;
+			return TString::Npos;
 		}
 
 		SizeType RFind(const CharType* c) const
@@ -319,7 +345,7 @@ namespace FluxStd
 			SizeType len = StrLen(c);
 			if (Length() == 0 || len == 0)
 			{
-				return String::Npos;
+				return TString::Npos;
 			}
 
 			for (SizeType i = Length() - 1; i >= len - 1; --i)
@@ -365,7 +391,7 @@ namespace FluxStd
 			{
 				return false;
 			}
-			return Find(pStr, Length() - appendLen) != String::Npos;
+			return Find(pStr, Length() - appendLen) != TString::Npos;
 		}
 
 		bool EndsWith(const TString& other) const
@@ -399,7 +425,28 @@ namespace FluxStd
 			return out;
 		}
 
-		void Replace(const CharType toReplace, const CharType replaceWith)
+		template<typename Range>
+		static TString Join(const Range& values, CharType* pSeparator)
+		{
+			TString output;
+			bool first = true;
+			for (const auto& element : values)
+			{
+				if (first)
+				{
+					first = false;
+				}
+				else
+				{
+					output.Append(pSeparator);
+				}
+				output.Append(element);
+				
+			}
+			return output;
+		}
+
+		void ReplaceInline(const CharType toReplace, const CharType replaceWith)
 		{
 			for (CharType& c : *this)
 			{
@@ -410,16 +457,192 @@ namespace FluxStd
 			}
 		}
 
+		inline TString Replace(const CharType toReplace, const CharType replaceWith) const
+		{
+			TString copy = TString(*this);
+			copy.ReplaceInline(toReplace, replaceWith);
+			return copy;
+		}
+
+		void ReplaceInline(const CharType* pToReplace, const CharType* pReplaceWith)
+		{
+			SizeType findLen = StrLen(pToReplace);
+			SizeType replaceLen = StrLen(pReplaceWith);
+
+			SizeType idx = 0;
+			for (;;)
+			{
+				idx = Find(pToReplace, idx);
+				if (idx != Npos)
+				{
+					if (findLen == replaceLen)
+					{
+						memcpy(m_Buffer.Data() + idx, pReplaceWith, replaceLen);
+					}
+					else if (findLen > replaceLen)
+					{
+						m_Buffer.MoveRange(idx, idx + findLen - replaceLen, m_Buffer.Size() - idx);
+						if (replaceLen > 0)
+						{
+							memcpy(m_Buffer.Data() + idx, pReplaceWith, replaceLen);
+						}
+					}
+					else
+					{
+						m_Buffer.Resize(m_Buffer.Size() + replaceLen - findLen);
+						m_Buffer.MoveRange(idx + replaceLen - findLen, idx, m_Buffer.Size() - (idx + replaceLen - findLen));
+						memcpy(m_Buffer.Data() + idx, pReplaceWith, replaceLen);
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		inline TString Replace(const CharType* pToReplace, const CharType* pReplaceWith) const
+		{
+			TString copy = TString(*this);
+			copy.ReplaceInline(pToReplace, pReplaceWith);
+			return copy;
+		}
+
+		void ReverseInline()
+		{
+			SizeType halfSize = Length() / 2;
+			for (SizeType i = 0; i < halfSize; ++i)
+			{
+				m_Buffer.Swap(i, Length() - i - 1);
+			}
+		}
+
+		inline TString Reverse() const
+		{
+			TString copy = TString(*this);
+			copy.ReverseInline();
+			return copy;
+		}
+
+		bool IsNumeric() const
+		{
+			bool floatingPoint = false;
+			for (SizeType i = 0; i < Length(); ++i)
+			{
+				CharType c = Data()[i];
+				if (!FluxStd::IsDigit(c))
+				{
+					if (i == 0 && c == TEXT('-'))
+					{
+						continue;
+					}
+					if (floatingPoint == false && c == TEXT('.'))
+					{
+						floatingPoint = true;
+						continue;
+					}
+					return false;
+				}
+			}
+			return true;
+		}
+
+		static float ToFloat(const TString& string)
+		{
+			int value = 0;
+			int sign = 1;
+			int floatingPoint = 1;
+			for (SizeType i = 0; i < string.Length(); ++i)
+			{
+				CharType c = string.Data()[string.Length() - 1 - i];
+				if (i == string.Length() - 1 && c == TEXT('-'))
+				{
+					assert(sign == 1);
+					sign = -1;
+					continue;
+				}
+				if (c == TEXT('.'))
+				{
+					assert(floatingPoint == 1);
+					floatingPoint = i;
+					continue;
+				}
+				int pos = floatingPoint > 1 ? i - 1 : i;
+				value += (int)(c - TEXT('0')) * (int)pow(10, pos);
+			}
+			return (float)value / (int)pow(10, floatingPoint) * sign;
+		}
+
+		static TString Format(const CharType* pFormat, const Vector<TString>& arguments)
+		{
+			TString string;
+			SizeType len = StrLen(pFormat);
+			string.m_Buffer.Reserve(len);
+			for (SizeType i = 0; i < len; ++i)
+			{
+				CharType c = pFormat[i];
+				if (c == '{')
+				{
+					int argIdx = pFormat[i + 1] - TEXT('0');
+					const TString& arg = arguments[argIdx];
+					for (CharType argC : arg)
+					{
+						if (argC == TEXT('\0'))
+						{
+							break;
+						}
+						string.m_Buffer.Push(argC);
+					}
+					i += 2;
+				}
+				else
+				{
+					string.m_Buffer.Push(c);
+				}
+			}
+			string.m_Buffer.Push(TEXT('\0'));
+			return string;
+		}
+
+		void RemoveFromEnd(const CharType* pText)
+		{
+			if (EndsWith(pText))
+			{
+				m_Buffer.Resize(m_Buffer.Size() - StrLen(pText));
+				m_Buffer[Length()] = TEXT('\0');
+			}
+		}
+
+		inline void RemoveFromEnd(const TString& other)
+		{
+			RemoveFromEnd(other.Data());
+		}
+
+		void RemoveFromStart(const CharType* pText)
+		{
+			if (StartsWith(pText))
+			{
+				SizeType len = StrLen(pText);
+				m_Buffer.MoveRange(0, len, m_Buffer.Size() - StrLen(pText));
+				m_Buffer.Resize(m_Buffer.Size() - len);
+			}
+		}
+
+		inline void RemoveFromStart(const TString& other)
+		{
+			RemoveFromStart(other.Data());
+		}
+
 		static void Strcpy(CharType* pDestination, const CharType* pSource, SizeType length)
 		{
-			while (*pSource != TXT('\0') && length > 0)
+			while (*pSource != TEXT('\0') && length > 0)
 			{
 				*pDestination = *pSource;
 				++pDestination;
 				++pSource;
 				--length;
 			}
-			*pDestination = TXT('\0');
+			*pDestination = TEXT('\0');
 		}
 
 		static SizeType StrLen(const CharType* pData)
@@ -431,6 +654,7 @@ namespace FluxStd
 			return pCurrent - pData;
 		}
 
+		template<typename OtherCharType>
 		static SizeType StrLen(const OtherCharType* pData)
 		{
 			const OtherCharType* pCurrent = pData;
@@ -550,7 +774,7 @@ namespace FluxStd
 			return os;
 		}
 
-		const CharType* Data() const { return m_Buffer.Size() > 0 ? m_Buffer.Data() : TXT(""); }
+		const CharType* Data() const { return m_Buffer.Size() > 0 ? m_Buffer.Data() : GetEmpty<CharType>(); }
 
 		operator bool() const { return !Empty(); }
 		inline bool Empty() const { return m_Buffer.Size() <= 1; }
@@ -573,11 +797,17 @@ namespace FluxStd
 		
 		static constexpr SizeType Npos = ~(SizeType)0;
 
+	private:
 		Vector<CharType> m_Buffer;
+
+		template<typename T>
+		static constexpr const T* GetEmpty() { return ""; }
+		template<>
+		static constexpr const wchar_t* GetEmpty() { return L""; }
 	};
 
-	template<typename CharType, typename OtherCharType, typename SizeType>
-	inline void Swap(TString<CharType, OtherCharType, SizeType>& a, TString<CharType, OtherCharType, SizeType>& b)
+	template<typename CharType, typename SizeType>
+	inline void Swap(TString<CharType>& a, TString<CharType>& b)
 	{
 		a.Swap(b);
 	}

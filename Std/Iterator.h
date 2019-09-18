@@ -5,12 +5,12 @@ namespace FluxStd
 	template<typename T>
 	struct RandomAccessIterator
 	{
-		RandomAccessIterator(T* pPtr) :
-			pPtr(pPtr)
+		RandomAccessIterator(T* pPtr) 
+			: pPtr(pPtr)
 		{}
 
-		RandomAccessIterator(const RandomAccessIterator& other) :
-			pPtr(other.pPtr)
+		RandomAccessIterator(const RandomAccessIterator& other) 
+			: pPtr(other.pPtr)
 		{}
 
 		RandomAccessIterator& operator=(const RandomAccessIterator& other)
@@ -85,12 +85,12 @@ namespace FluxStd
 	template<typename T>
 	struct RandomAccessConstIterator
 	{
-		RandomAccessConstIterator(const T* pPtr) :
-			pPtr(pPtr)
+		RandomAccessConstIterator(const T* pPtr) 
+			: pPtr(pPtr)
 		{}
 
-		RandomAccessConstIterator(const RandomAccessConstIterator& other) :
-			pPtr(other.pPtr)
+		RandomAccessConstIterator(const RandomAccessConstIterator& other) 
+			: pPtr(other.pPtr)
 		{}
 
 		RandomAccessConstIterator& operator=(const RandomAccessConstIterator& other)

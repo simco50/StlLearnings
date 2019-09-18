@@ -35,12 +35,12 @@ namespace FluxStd
 	{
 		using Node = HashNode<T>;
 
-		HashIterator(Node* pNode) :
-			pNode(pNode)
+		HashIterator(Node* pNode) 
+			: pNode(pNode)
 		{}
 
-		HashIterator(const HashIterator& other) :
-			pNode(other.pNode)
+		HashIterator(const HashIterator& other) 
+			: pNode(other.pNode)
 		{
 		}
 
@@ -168,6 +168,7 @@ namespace FluxStd
 	class HashSet
 	{
 	public:
+		using SizeType = size_t;
 		using Iterator = HashIterator<T>;
 		using ConstIterator = HashConstIterator<T>;
 		using Node = HashNode<T>;
@@ -334,7 +335,7 @@ namespace FluxStd
 
 		Iterator Erase(const T& value)
 		{
-			size_t hash = Hash(value);
+			SizeType hash = Hash(value);
 			Node* pNode = m_pTable[hash];
 			if (pNode == nullptr)
 			{
@@ -399,7 +400,7 @@ namespace FluxStd
 
 		Iterator Find(const T& value)
 		{
-			const size_t hash = Hash(value);
+			const SizeType hash = Hash(value);
 			Node* pNode = m_pTable[hash];
 			KeyEqual equal;
 			while (pNode)
@@ -415,7 +416,7 @@ namespace FluxStd
 
 		ConstIterator Find(const T& value) const
 		{
-			const size_t hash = Hash(value);
+			const SizeType hash = Hash(value);
 			const Node* pNode = m_pTable[hash];
 			KeyEqual equal;
 			while (pNode)
@@ -434,16 +435,16 @@ namespace FluxStd
 			return Find(value) != m_pTail;
 		}
 
-		size_t Size() const { return m_Size; }
-		size_t BucketCount() const { return m_BucketCount; }
+		SizeType Size() const { return m_Size; }
+		SizeType BucketCount() const { return m_BucketCount; }
 		constexpr float MaxLoadFactor() const { return 0.75f; }
 		float LoadFactor() const { return (float)m_Size / m_BucketCount; }
 
-		size_t BucketSize(const size_t idx) const
+		SizeType BucketSize(const SizeType idx) const
 		{
 			assert(idx < m_BucketCount);
 			Node* pNode = m_pTable[idx];
-			size_t size = 0;
+			SizeType size = 0;
 			while (pNode != nullptr)
 			{
 				++size;
@@ -452,7 +453,7 @@ namespace FluxStd
 			return size;
 		}
 
-		size_t Bucket(const T& value) const
+		SizeType Bucket(const T& value) const
 		{
 			assert(Find(value) != End());
 			return Hash(value);
@@ -460,7 +461,7 @@ namespace FluxStd
 
 
 		//The amount of buckets to start with
-		static const size_t START_BUCKETS = 8;
+		static constexpr const SizeType START_BUCKETS = 8;
 
 		Iterator Begin() { return Iterator(m_pHead); }
 		ConstIterator Begin() const { return ConstIterator(m_pHead); }
@@ -509,7 +510,7 @@ namespace FluxStd
 			}
 
 			//Add node to right bucket
-			size_t hash = Hash(pNewNode->Value);
+			SizeType hash = Hash(pNewNode->Value);
 			pNewNode->pDown = m_pTable[hash];
 			m_pTable[hash] = pNewNode;
 			++m_Size;
@@ -524,13 +525,13 @@ namespace FluxStd
 		}
 
 		//Hash a key using the hash functor
-		inline size_t Hash(const T& value) const
+		inline SizeType Hash(const T& value) const
 		{
 			HashType hasher;
 			return hasher(value) % m_BucketCount;
 		}
 
-		void AllocateBuckets(const size_t count)
+		void AllocateBuckets(const SizeType count)
 		{
 			if (m_pTable)
 			{
@@ -539,7 +540,7 @@ namespace FluxStd
 			m_pTable = new Node * [count];
 			m_BucketCount = count;
 
-			for (size_t i = 0; i < count; ++i)
+			for (SizeType i = 0; i < count; ++i)
 			{
 				m_pTable[i] = nullptr;
 			}
@@ -551,7 +552,7 @@ namespace FluxStd
 			for (Iterator pCurrent = begin(); pCurrent != end(); ++pCurrent)
 			{
 				Node* pNode = pCurrent.pNode;
-				size_t hash = Hash(pNode->Value);
+				SizeType hash = Hash(pNode->Value);
 				pNode->pDown = m_pTable[hash];
 				m_pTable[hash] = pNode;
 			}
@@ -573,9 +574,9 @@ namespace FluxStd
 
 	private:
 		//The amount of buckets
-		size_t m_BucketCount;
+		SizeType m_BucketCount;
 		//The amount of elements in the map
-		size_t m_Size;
+		SizeType m_Size;
 		//The head of the linked list
 		Node* m_pHead;
 		//The tail of the linked list
